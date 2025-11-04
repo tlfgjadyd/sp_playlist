@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>New Releases</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+<h1>New Releases on Spotify</h1>
+<div th:if="${newReleases != null and newReleases.length > 0}">
+    <div th:each="album : ${newReleases}" style="margin-bottom: 20px;">
+        <h2 th:text="${album.name}">Album Name</h2>
+        <p th:text="${'Artists: ' + #strings.arrayJoin(album.artists, ', ')}">Artists</p>
+        <p th:text="${'Release Date: ' + album.releaseDate}">Release Date</p>
+        <img th:if="${album.images != null and album.images.length > 0}"
+             th:src="${album.images[0].url}"
+             alt="Album Art"
+             width="200"/>
+    </div>
+</div>
+<div th:if="${newReleases == null or newReleases.length == 0}">
+    <p>No new releases found.</p>
+</div>
+</body>
+</html>
