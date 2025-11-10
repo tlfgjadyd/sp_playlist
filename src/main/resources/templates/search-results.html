@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Search Results</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+<h1>Track Search Results for "love"</h1>
+<div th:if="${trackPaging != null and trackPaging.total > 0}">
+    <div th:each="track : ${trackPaging.items}" style="display: flex; align-items: center; margin-bottom: 15px;">
+        <img th:if="${track.album.images != null and track.album.images.length > 0}"
+             th:src="${track.album.images[0].url}"
+             alt="Album Art"
+             width="100"
+             style="margin-right: 15px;"/>
+        <div>
+            <h3 th:text="${track.name}" style="margin: 0;">Track Name</h3>
+            <p th:text="${#strings.arrayJoin(track.artists.![name], ', ')}" style="margin: 0;">Artist Names</p>
+        </div>
+    </div>
+</div>
+<div th:if="${trackPaging == null or trackPaging.total == 0}">
+    <p>Could not load search results or no tracks found.</p>
+</div>
+</body>
+</html>
