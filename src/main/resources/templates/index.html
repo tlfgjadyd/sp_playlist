@@ -1,11 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>My Playlist</title>
 </head>
 <body>
     <h1>Welcome to My Playlist</h1>
-    <a href="/login">Login with Spotify</a>
+
+    <!-- 로그인하지 않은 사용자에게만 보임 -->
+    <div sec:authorize="isAnonymous()">
+        <p>
+            <a href="/login">Login</a> |
+            <a href="/signup">Sign Up</a>
+        </p>
+    </div>
+
+    <!-- 로그인한 사용자에게만 보임 -->
+    <div sec:authorize="isAuthenticated()">
+        <p>Welcome, <span sec:authentication="name"></span>!</p>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <input type="submit" value="Logout"/>
+        </form>
+    </div>
+
+    <p>
+        <a href="/new-releases">View New Releases (Login Required)</a>
+    </p>
 </body>
 </html>

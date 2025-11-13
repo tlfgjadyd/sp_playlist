@@ -4,6 +4,39 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.playlist.myplaylist.mapper.UserMapper">
 
-    <!-- We will add SQL statements like <select>, <insert>, etc. here later. -->
+    <resultMap id="userResultMap" type="com.playlist.myplaylist.model.User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="email" column="email"/>
+        <result property="password" column="password"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="spotifyAccessToken" column="spotify_access_token"/>
+        <result property="spotifyRefreshToken" column="spotify_refresh_token"/>
+    </resultMap>
+
+    <select id="findByEmail" resultMap="userResultMap">
+        SELECT id, username, email, password, created_at, spotify_access_token, spotify_refresh_token
+        FROM users
+        WHERE email = #{email}
+    </select>
+
+    <select id="findByUsername" resultMap="userResultMap">
+        SELECT id, username, email, password, created_at, spotify_access_token, spotify_refresh_token
+        FROM users
+        WHERE username = #{username}
+    </select>
+
+    <insert id="insertUser" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (username, email, password)
+        VALUES (#{username}, #{email}, #{password})
+    </insert>
+
+    <update id="updateSpotifyTokens">
+        UPDATE users
+        SET
+            spotify_access_token = #{spotifyAccessToken},
+            spotify_refresh_token = #{spotifyRefreshToken}
+        WHERE id = #{id}
+    </update>
 
 </mapper>

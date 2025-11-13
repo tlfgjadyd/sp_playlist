@@ -5,5 +5,8 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface UserMapper {
-    // We will add methods like findByEmail, insertUser, etc. here later.
+    User findByEmail(String email);
+    User findByUsername(String username);
+    int insertUser(User user);
+    int updateSpotifyTokens(User user);
 }

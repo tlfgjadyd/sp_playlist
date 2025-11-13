@@ -8,6 +8,8 @@ public class User {
     private String email;
     private String password;
     private Timestamp createdAt;
+    private String spotifyAccessToken;
+    private String spotifyRefreshToken;
 
     // Getters and Setters
     public int getId() {
@@ -50,6 +52,22 @@ public class User {
         this.createdAt = createdAt;
     }
 
+    public String getSpotifyAccessToken() {
+        return spotifyAccessToken;
+    }
+
+    public void setSpotifyAccessToken(String spotifyAccessToken) {
+        this.spotifyAccessToken = spotifyAccessToken;
+    }
+
+    public String getSpotifyRefreshToken() {
+        return spotifyRefreshToken;
+    }
+
+    public void setSpotifyRefreshToken(String spotifyRefreshToken) {
+        this.spotifyRefreshToken = spotifyRefreshToken;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -58,6 +76,8 @@ public class User {
                 ", email='" + email + "'" +
                 ", password='" + password + "'" +
                 ", createdAt=" + createdAt +
+                ", spotifyAccessToken='" + spotifyAccessToken + "'" +
+                ", spotifyRefreshToken='" + spotifyRefreshToken + "'" +
                 '}';
     }
 }

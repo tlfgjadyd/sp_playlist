@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
 </head>
 <body>
+<nav>
+    <a href="/">Home</a> |
+    <form th:action="@{/logout}" method="post" style="display:inline;">
+        <input type="submit" value="Logout"/>
+    </form>
+</nav>
 <div th:if="${playlist != null}">
     <h1 th:text="${playlist.name}">Playlist Name</h1>
     <p th:text="${playlist.description}">Playlist Description</p>

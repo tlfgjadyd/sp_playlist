@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
 </head>
 <body>
+<nav>
+    <a href="/">Home</a> |
+    <form th:action="@{/logout}" method="post" style="display:inline;">
+        <input type="submit" value="Logout"/>
+    </form>
+</nav>
 <h1>New Releases on Spotify</h1>
 <div th:if="${newReleases != null and newReleases.length > 0}">
     <div th:each="album : ${newReleases}" style="margin-bottom: 20px;">

@@ -1,6 +1,8 @@
 package com.playlist.myplaylist.controller;
 
+import com.playlist.myplaylist.service.CustomUserDetailsService;
 import com.playlist.myplaylist.service.SpotifyService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,16 +23,23 @@ public class SpotifyController {
         this.spotifyService = spotifyService;
     }
 
-    @GetMapping("/login")
-    public String login() {
+    @GetMapping("/connect-spotify")
+    public String connectSpotify(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails currentUser) {
+        if (currentUser == null) {
+            return "redirect:/login"; // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
+        }
         URI uri = spotifyService.authorizationCodeUri();
         return "redirect:" + uri.toString();
     }
 
     @GetMapping("/callback")
-    public String callback(@RequestParam("code") String code) {
-        spotifyService.authorizationCode(code);
-        return "redirect:/global-top";
+    public String callback(@RequestParam("code") String code,
+                           @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails currentUser) {
+        if (currentUser == null) {
+            return "redirect:/login"; // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
+        }
+        spotifyService.authorizationCode(code, currentUser.getUser());
+        return "redirect:/global-top"; // 토큰 저장 후 글로벌 탑 페이지로 리다이렉트
     }
 
     @GetMapping("/new-releases")
@@ -41,8 +50,12 @@ public class SpotifyController {
     }
 
     @GetMapping("/global-top")
-    public String getGlobalTop(Model model) {
-        Playlist playlist = spotifyService.getGlobalTopPlaylist();
+    public String getGlobalTop(Model model, @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails currentUser) {
+        if (currentUser == null || currentUser.getUser().getSpotifyAccessToken() == null) {
+            // Spotify 토큰이 없으면 연결 페이지로 리다이렉트
+            return "redirect:/connect-spotify";
+        }
+        Playlist playlist = spotifyService.getGlobalTopPlaylist(currentUser.getUser());
         model.addAttribute("playlist", playlist);
         return "global-top";
     }

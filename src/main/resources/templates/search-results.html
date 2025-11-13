@@ -4,7 +4,17 @@
     <title>Search Results</title>
     <meta charset="UTF-8">
 </head>
+<header>
+    <h1>Search Results</h1>
+    <a href="/">홈으로 돌아가기</a>
+</header>
 <body>
+<nav>
+    <a href="/">Home</a> |
+    <form th:action="@{/logout}" method="post" style="display:inline;">
+        <input type="submit" value="Logout"/>
+    </form>
+</nav>
 <h1>Track Search Results for "love"</h1>
 <div th:if="${trackPaging != null and trackPaging.total > 0}">
     <div th:each="track : ${trackPaging.items}" style="display: flex; align-items: center; margin-bottom: 15px;">
