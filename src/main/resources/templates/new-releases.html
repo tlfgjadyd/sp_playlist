@@ -7,20 +7,29 @@
 <body>
 <nav>
     <a href="/">Home</a> |
+    <a href="/playlists/my">My Playlists</a> |
     <form th:action="@{/logout}" method="post" style="display:inline;">
         <input type="submit" value="Logout"/>
     </form>
 </nav>
 <h1>New Releases on Spotify</h1>
 <div th:if="${newReleases != null and newReleases.length > 0}">
-    <div th:each="album : ${newReleases}" style="margin-bottom: 20px;">
+    <div th:each="album : ${newReleases}" style="margin-bottom: 20px; border: 1px solid #eee; padding: 10px;">
         <h2 th:text="${album.name}">Album Name</h2>
-        <p th:text="${'Artists: ' + #strings.arrayJoin(album.artists, ', ')}">Artists</p>
+        <p th:text="${'Artists: ' + #strings.arrayJoin(album.artists.![name], ', ')}">Artists</p>
         <p th:text="${'Release Date: ' + album.releaseDate}">Release Date</p>
         <img th:if="${album.images != null and album.images.length > 0}"
              th:src="${album.images[0].url}"
              alt="Album Art"
              width="200"/>
+        <br/>
+        <!-- "플레이리스트에 추가" 버튼 -->
+        <a th:href="@{/playlists/add-track(
+            trackId=${album.id},
+            trackName=${album.name},
+            artistName=${#strings.arrayJoin(album.artists.![name], ', ')},
+            imageUrl=${album.images != null and album.images.length > 0 ? album.images[0].url : ''}
+        )}">Add to Playlist</a>
     </div>
 </div>
 <div th:if="${newReleases == null or newReleases.length == 0}">

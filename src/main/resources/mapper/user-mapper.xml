@@ -8,27 +8,27 @@
         <id property="id" column="id"/>
         <result property="username" column="username"/>
         <result property="email" column="email"/>
-        <result property="password" column="password"/>
+        <result property="spotifyUserId" column="spotify_user_id"/>
         <result property="createdAt" column="created_at"/>
         <result property="spotifyAccessToken" column="spotify_access_token"/>
         <result property="spotifyRefreshToken" column="spotify_refresh_token"/>
     </resultMap>
 
-    <select id="findByEmail" resultMap="userResultMap">
-        SELECT id, username, email, password, created_at, spotify_access_token, spotify_refresh_token
+    <select id="findBySpotifyUserId" resultMap="userResultMap">
+        SELECT *
         FROM users
-        WHERE email = #{email}
+        WHERE spotify_user_id = #{spotifyUserId}
     </select>
 
     <select id="findByUsername" resultMap="userResultMap">
-        SELECT id, username, email, password, created_at, spotify_access_token, spotify_refresh_token
+        SELECT *
         FROM users
         WHERE username = #{username}
     </select>
 
     <insert id="insertUser" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (username, email, password)
-        VALUES (#{username}, #{email}, #{password})
+        INSERT INTO users (username, email, spotify_user_id)
+        VALUES (#{username}, #{email}, #{spotifyUserId})
     </insert>
 
     <update id="updateSpotifyTokens">

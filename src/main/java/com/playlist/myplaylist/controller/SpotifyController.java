@@ -1,18 +1,17 @@
 package com.playlist.myplaylist.controller;
 
-import com.playlist.myplaylist.service.CustomUserDetailsService;
+import com.playlist.myplaylist.service.CustomOAuth2UserService;
 import com.playlist.myplaylist.service.SpotifyService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.Playlist;
 import se.michaelthelin.spotify.model_objects.specification.Track;
-
-import java.net.URI;
 
 @Controller
 public class SpotifyController {
@@ -23,47 +22,33 @@ public class SpotifyController {
         this.spotifyService = spotifyService;
     }
 
-    @GetMapping("/connect-spotify")
-    public String connectSpotify(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails currentUser) {
-        if (currentUser == null) {
-            return "redirect:/login"; // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
-        }
-        URI uri = spotifyService.authorizationCodeUri();
-        return "redirect:" + uri.toString();
-    }
-
-    @GetMapping("/callback")
-    public String callback(@RequestParam("code") String code,
-                           @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails currentUser) {
-        if (currentUser == null) {
-            return "redirect:/login"; // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
-        }
-        spotifyService.authorizationCode(code, currentUser.getUser());
-        return "redirect:/global-top"; // 토큰 저장 후 글로벌 탑 페이지로 리다이렉트
+    @GetMapping("/login")
+    public String login() {
+        return "login";
     }
 
     @GetMapping("/new-releases")
-    public String getNewReleases(Model model) {
-        AlbumSimplified[] newReleases = spotifyService.getNewReleases();
+    public String getNewReleases(Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
+        String accessToken = customOAuth2User.getUser().getSpotifyAccessToken();
+        AlbumSimplified[] newReleases = spotifyService.getNewReleases(accessToken);
         model.addAttribute("newReleases", newReleases);
         return "new-releases";
     }
 
     @GetMapping("/global-top")
-    public String getGlobalTop(Model model, @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails currentUser) {
-        if (currentUser == null || currentUser.getUser().getSpotifyAccessToken() == null) {
-            // Spotify 토큰이 없으면 연결 페이지로 리다이렉트
-            return "redirect:/connect-spotify";
-        }
-        Playlist playlist = spotifyService.getGlobalTopPlaylist(currentUser.getUser());
+    public String getGlobalTop(Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
+        String accessToken = customOAuth2User.getUser().getSpotifyAccessToken();
+        Playlist playlist = spotifyService.getGlobalTopPlaylist(accessToken);
         model.addAttribute("playlist", playlist);
         return "global-top";
     }
 
     @GetMapping("/search-test")
-    public String searchTest(Model model) {
-        Paging<Track> trackPaging = spotifyService.searchTracks();
+    public String searchTest(Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
+        String accessToken = customOAuth2User.getUser().getSpotifyAccessToken();
+        Paging<Track> trackPaging = spotifyService.searchTracks(accessToken);
         model.addAttribute("trackPaging", trackPaging);
         return "search-results";
     }
+
 }

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Playlists</title>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <input type="submit" value="Logout"/>
+        </form>
+    </nav>
+    <h1>My Playlists</h1>
+    <a href="/playlists/create">Create New Playlist</a>
+    <hr/>
+    <div th:if="${playlists.isEmpty()}">
+        <p>You don't have any playlists yet.</p>
+    </div>
+    <div th:unless="${playlists.isEmpty()}">
+        <div th:each="playlist : ${playlists}" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+            <h2 th:text="${playlist.name}">Playlist Name</h2>
+            <p th:text="${playlist.description}">Description</p>
+            <small th:text="${'Created on: ' + #dates.format(playlist.createdAt, 'yyyy-MM-dd HH:mm')}">Created on</small>
+        </div>
+    </div>
+</body>
+</html>

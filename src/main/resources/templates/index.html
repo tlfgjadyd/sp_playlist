@@ -10,8 +10,7 @@
     <!-- 로그인하지 않은 사용자에게만 보임 -->
     <div sec:authorize="isAnonymous()">
         <p>
-            <a href="/login">Login</a> |
-            <a href="/signup">Sign Up</a>
+            <a href="/login">Login with Spotify</a>
         </p>
     </div>
 
@@ -21,10 +20,10 @@
         <form th:action="@{/logout}" method="post" style="display:inline;">
             <input type="submit" value="Logout"/>
         </form>
+        <p>
+            <a href="/new-releases">View New Releases</a>
+        </p>
     </div>
 
-    <p>
-        <a href="/new-releases">View New Releases (Login Required)</a>
-    </p>
 </body>
 </html>

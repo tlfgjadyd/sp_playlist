@@ -4,6 +4,24 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.playlist.myplaylist.mapper.PlaylistMapper">
 
-    <!-- We will add SQL statements like <select>, <insert>, etc. here later. -->
+    <resultMap id="playlistResultMap" type="com.playlist.myplaylist.model.Playlist">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insertPlaylist" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO playlists (user_id, name, description)
+        VALUES (#{userId}, #{name}, #{description})
+    </insert>
+
+    <select id="findByUserId" resultMap="playlistResultMap">
+        SELECT id, user_id, name, description, created_at
+        FROM playlists
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
 
 </mapper>

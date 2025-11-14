@@ -6,7 +6,7 @@ public class User {
     private int id;
     private String username;
     private String email;
-    private String password;
+    private String spotifyUserId;
     private Timestamp createdAt;
     private String spotifyAccessToken;
     private String spotifyRefreshToken;
@@ -36,12 +36,12 @@ public class User {
         this.email = email;
     }
 
-    public String getPassword() {
-        return password;
+    public String getSpotifyUserId() {
+        return spotifyUserId;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setSpotifyUserId(String spotifyUserId) {
+        this.spotifyUserId = spotifyUserId;
     }
 
     public Timestamp getCreatedAt() {
@@ -72,12 +72,13 @@ public class User {
     public String toString() {
         return "User{" +
                 "id=" + id +
-                ", username='" + username + "'" +
-                ", email='" + email + "'" +
-                ", password='" + password + "'" +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", spotifyUserId='" + spotifyUserId + '\'' +
                 ", createdAt=" + createdAt +
-                ", spotifyAccessToken='" + spotifyAccessToken + "'" +
-                ", spotifyRefreshToken='" + spotifyRefreshToken + "'" +
+                ", spotifyAccessToken='" + spotifyAccessToken + '\'' +
+                ", spotifyRefreshToken='" + spotifyRefreshToken + '\'' +
                 '}';
     }
 }
+

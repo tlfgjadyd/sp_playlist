@@ -7,5 +7,6 @@ import java.util.List;
 
 @Mapper
 public interface PlaylistTrackMapper {
+    int insertPlaylistTrack(PlaylistTrack playlistTrack);
     // We will add methods like findByPlaylistId, insertTrack, etc. here later.
 }

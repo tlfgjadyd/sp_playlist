@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Track to Playlist</title>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <a href="/playlists/my">My Playlists</a> |
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <input type="submit" value="Logout"/>
+        </form>
+    </nav>
+    <h1>Add "<span th:text="${trackName}">Track Name</span>" to Playlist</h1>
+
+    <div style="display: flex; align-items: center; margin-bottom: 20px;">
+        <img th:if="${imageUrl != null and imageUrl != ''}"
+             th:src="${imageUrl}"
+             alt="Album Art"
+             width="100"
+             style="margin-right: 15px;"/>
+        <div>
+            <h3 th:text="${trackName}">Track Name</h3>
+            <p th:text="${artistName}">Artist Name</p>
+        </div>
+    </div>
+
+    <form th:action="@{/playlists/add-track}" method="post">
+        <input type="hidden" name="trackId" th:value="${trackId}"/>
+        <input type="hidden" name="trackName" th:value="${trackName}"/>
+        <input type="hidden" name="artistName" th:value="${artistName}"/>
+        <input type="hidden" name="previewUrl" th:value="${previewUrl}"/>
+        <input type="hidden" name="imageUrl" th:value="${imageUrl}"/>
+
+        <div>
+            <label for="playlistSelect">Select Playlist:</label>
+            <select id="playlistSelect" name="playlistId" required>
+                <option th:each="playlist : ${playlists}" th:value="${playlist.id}" th:text="${playlist.name}"></option>
+            </select>
+        </div>
+        <br/>
+        <div>
+            <input type="submit" value="Add to Selected Playlist"/>
+        </div>
+    </form>
+
+    <div th:if="${playlists.isEmpty()}" style="margin-top: 20px;">
+        <p>You don't have any playlists yet. <a href="/playlists/create">Create one now!</a></p>
+    </div>
+</body>
+</html>

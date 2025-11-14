@@ -24,7 +24,7 @@
              style="margin-right: 15px;"/>
         <div>
             <h3 th:text="${trackItem.track.name}" style="margin: 0;">Track Name</h3>
-            <p th:text="${#strings.arrayJoin(#arrays.stream(trackItem.track.artists).map(a -> a.name).toArray(), ', ')}" style="margin: 0;">Artist Names</p>
+            <p th:text="${#strings.arrayJoin(trackItem.track.artists.![name], ', ')}" style="margin: 0;">Artist Names</p>
         </div>
     </div>
 </div>

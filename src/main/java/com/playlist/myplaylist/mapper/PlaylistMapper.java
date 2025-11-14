@@ -7,5 +7,6 @@ import java.util.List;
 
 @Mapper
 public interface PlaylistMapper {
-    // We will add methods like findByUserId, insertPlaylist, etc. here later.
+    int insertPlaylist(Playlist playlist);
+    List<Playlist> findByUserId(int userId);
 }

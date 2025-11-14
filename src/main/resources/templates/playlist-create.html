@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Create New Playlist</title>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <input type="submit" value="Logout"/>
+        </form>
+    </nav>
+    <h1>Create New Playlist</h1>
+    <form th:action="@{/playlists/create}" method="post">
+        <div>
+            <label for="name">Playlist Name:</label>
+            <input type="text" id="name" name="name" required/>
+        </div>
+        <div>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" rows="4" cols="50"></textarea>
+        </div>
+        <div>
+            <input type="submit" value="Create"/>
+        </div>
+    </form>
+</body>
+</html>

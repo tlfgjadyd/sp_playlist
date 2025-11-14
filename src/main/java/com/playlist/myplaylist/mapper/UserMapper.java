@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface UserMapper {
-    User findByEmail(String email);
+    User findBySpotifyUserId(String spotifyUserId);
     User findByUsername(String username);
     int insertUser(User user);
     int updateSpotifyTokens(User user);
