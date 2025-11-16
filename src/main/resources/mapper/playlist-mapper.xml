@@ -24,4 +24,10 @@
         ORDER BY created_at DESC
     </select>
 
+    <select id="findById" resultMap="playlistResultMap">
+        SELECT id, user_id, name, description, created_at
+        FROM playlists
+        WHERE id = #{id}
+    </select>
+
 </mapper>

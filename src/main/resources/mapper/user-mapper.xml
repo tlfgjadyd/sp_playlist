@@ -12,6 +12,7 @@
         <result property="createdAt" column="created_at"/>
         <result property="spotifyAccessToken" column="spotify_access_token"/>
         <result property="spotifyRefreshToken" column="spotify_refresh_token"/>
+        <result property="spotifyAccessTokenExpiresAt" column="spotify_access_token_expires_at"/>
     </resultMap>
 
     <select id="findBySpotifyUserId" resultMap="userResultMap">
@@ -26,16 +27,31 @@
         WHERE username = #{username}
     </select>
 
+    <select id="findByEmail" resultMap="userResultMap">
+        SELECT *
+        FROM users
+        WHERE email = #{email}
+    </select>
+
     <insert id="insertUser" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (username, email, spotify_user_id)
-        VALUES (#{username}, #{email}, #{spotifyUserId})
+        INSERT INTO users (username, email, spotify_user_id, spotify_access_token, spotify_refresh_token, spotify_access_token_expires_at)
+        VALUES (#{username}, #{email}, #{spotifyUserId}, #{spotifyAccessToken}, #{spotifyRefreshToken}, #{spotifyAccessTokenExpiresAt})
     </insert>
 
     <update id="updateSpotifyTokens">
         UPDATE users
         SET
             spotify_access_token = #{spotifyAccessToken},
-            spotify_refresh_token = #{spotifyRefreshToken}
+            spotify_refresh_token = #{spotifyRefreshToken},
+            spotify_access_token_expires_at = #{spotifyAccessTokenExpiresAt}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateSpotifyAccessToken">
+        UPDATE users
+        SET
+            spotify_access_token = #{spotifyAccessToken},
+            spotify_access_token_expires_at = #{spotifyAccessTokenExpiresAt}
         WHERE id = #{id}
     </update>
 

@@ -2,6 +2,7 @@ package com.playlist.myplaylist.service;
 
 import com.playlist.myplaylist.mapper.UserMapper;
 import com.playlist.myplaylist.model.User;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -27,18 +28,28 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         Map<String, Object> attributes = oAuth2User.getAttributes();
         String spotifyUserId = (String) attributes.get("id");
-        String username = (String) attributes.get("display_name");
-        String email = (String) attributes.get("email");
 
         User user = userMapper.findBySpotifyUserId(spotifyUserId);
 
         if (user == null) {
+            // New Spotify user.
+            String username = (String) attributes.get("display_name");
+            String email = (String) attributes.get("email");
+
+            // Handle potential username collision or null username
+            if (username == null || username.isBlank() || userMapper.findByUsername(username) != null) {
+                username = "user_" + spotifyUserId;
+            }
+
+            // Handle potential email collision or null email
+            if (email == null || email.isBlank() || userMapper.findByEmail(email) != null) {
+                email = spotifyUserId + "@myplaylist.app"; // Create a placeholder email
+            }
+
             user = new User();
             user.setSpotifyUserId(spotifyUserId);
             user.setUsername(username);
             user.setEmail(email);
-            // 토큰 저장은 SuccessHandler에서 처리하므로 여기서는 저장하지 않음
-            userMapper.insertUser(user);
         }
 
         return new CustomOAuth2User(oAuth2User, user);
@@ -46,6 +57,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     public static class CustomOAuth2User implements OAuth2User {
         private final OAuth2User oAuth2User;
+        @Getter
         private final User user;
 
         public CustomOAuth2User(OAuth2User oAuth2User, User user) {
@@ -68,8 +80,5 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return oAuth2User.getAttribute("display_name");
         }
 
-        public User getUser() {
-            return user;
-        }
     }
 }

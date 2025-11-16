@@ -1,16 +1,15 @@
 package com.playlist.myplaylist.controller;
 
+import com.playlist.myplaylist.model.User;
 import com.playlist.myplaylist.service.CustomOAuth2UserService;
 import com.playlist.myplaylist.service.SpotifyService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
-import se.michaelthelin.spotify.model_objects.specification.Playlist;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 
 @Controller
@@ -29,25 +28,26 @@ public class SpotifyController {
 
     @GetMapping("/new-releases")
     public String getNewReleases(Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
-        String accessToken = customOAuth2User.getUser().getSpotifyAccessToken();
-        AlbumSimplified[] newReleases = spotifyService.getNewReleases(accessToken);
+        User user = customOAuth2User.getUser();
+        AlbumSimplified[] newReleases = spotifyService.getNewReleases(user);
         model.addAttribute("newReleases", newReleases);
         return "new-releases";
     }
 
-    @GetMapping("/global-top")
-    public String getGlobalTop(Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
-        String accessToken = customOAuth2User.getUser().getSpotifyAccessToken();
-        Playlist playlist = spotifyService.getGlobalTopPlaylist(accessToken);
-        model.addAttribute("playlist", playlist);
-        return "global-top";
+    @GetMapping("/top-tracks")
+    public String getTopTracks(Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
+        User user = customOAuth2User.getUser();
+        Paging<Track> trackPaging = spotifyService.getUsersTopTracks(user);
+        model.addAttribute("trackPaging", trackPaging);
+        return "top-tracks";
     }
 
-    @GetMapping("/search-test")
-    public String searchTest(Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
-        String accessToken = customOAuth2User.getUser().getSpotifyAccessToken();
-        Paging<Track> trackPaging = spotifyService.searchTracks(accessToken);
+    @GetMapping("/search")
+    public String search(@RequestParam(name = "q", required = false, defaultValue = "love") String query, Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
+        User user = customOAuth2User.getUser();
+        Paging<Track> trackPaging = spotifyService.searchTracks(user, query);
         model.addAttribute("trackPaging", trackPaging);
+        model.addAttribute("query", query);
         return "search-results";
     }
 

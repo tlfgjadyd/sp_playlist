@@ -20,4 +20,11 @@
         VALUES (#{playlistId}, #{trackId}, #{trackName}, #{artistName}, #{previewUrl}, #{imageUrl})
     </insert>
 
+    <select id="findByPlaylistId" resultMap="playlistTrackResultMap">
+        SELECT id, playlist_id, track_id, track_name, artist_name, preview_url, image_url, created_at
+        FROM playlist_tracks
+        WHERE playlist_id = #{playlistId}
+        ORDER BY created_at DESC
+    </select>
+
 </mapper>

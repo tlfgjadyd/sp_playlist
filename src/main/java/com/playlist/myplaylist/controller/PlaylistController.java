@@ -8,10 +8,7 @@ import com.playlist.myplaylist.service.CustomOAuth2UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -93,5 +90,16 @@ public class PlaylistController {
         playlistTrackMapper.insertPlaylistTrack(playlistTrack);
 
         return "redirect:/playlists/" + playlistId; // 플레이리스트 상세 페이지로 리다이렉트
+    }
+
+    @GetMapping("/{playlistId}")
+    public String showPlaylistDetail(@PathVariable int playlistId, Model model) {
+        Playlist playlist = playlistMapper.findById(playlistId);
+        List<PlaylistTrack> tracks = playlistTrackMapper.findByPlaylistId(playlistId);
+
+        model.addAttribute("playlist", playlist);
+        model.addAttribute("tracks", tracks);
+
+        return "playlist-detail";
     }
 }

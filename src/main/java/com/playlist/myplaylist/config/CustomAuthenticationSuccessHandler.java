@@ -14,6 +14,9 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Component
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
@@ -38,15 +41,24 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         );
 
         String accessToken = client.getAccessToken().getTokenValue();
-        String refreshToken = client.getRefreshToken() != null ? client.getRefreshToken().getTokenValue() : null;
+        Instant expiresAt = client.getAccessToken().getExpiresAt();
+        LocalDateTime expirationDateTime = LocalDateTime.ofInstant(expiresAt, ZoneId.systemDefault());
+        String refreshToken = client.getRefreshToken() != null ? client.getRefreshToken().getTokenValue() : user.getSpotifyRefreshToken();
 
         user.setSpotifyAccessToken(accessToken);
+        user.setSpotifyAccessTokenExpiresAt(expirationDateTime);
         if (refreshToken != null) {
             user.setSpotifyRefreshToken(refreshToken);
         }
-        userMapper.updateSpotifyTokens(user);
 
-        response.sendRedirect("/new-releases");
+
+        if (user.getId() == 0) {
+            userMapper.insertUser(user);
+        } else {
+            userMapper.updateSpotifyTokens(user);
+        }
+
+        response.sendRedirect("/");
     }
 
 

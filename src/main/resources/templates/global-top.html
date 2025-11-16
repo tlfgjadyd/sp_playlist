@@ -1,35 +1,51 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title th:text="${playlist != null ? playlist.name : 'Global Top Tracks'}">Global Top Tracks</title>
     <meta charset="UTF-8">
+    <title>My Playlist</title>
 </head>
 <body>
-<nav>
-    <a href="/">Home</a> |
-    <form th:action="@{/logout}" method="post" style="display:inline;">
-        <input type="submit" value="Logout"/>
-    </form>
-</nav>
-<div th:if="${playlist != null}">
-    <h1 th:text="${playlist.name}">Playlist Name</h1>
-    <p th:text="${playlist.description}">Playlist Description</p>
-    <hr/>
-    <h2>Tracks</h2>
-    <div th:each="trackItem : ${playlist.tracks.items}" style="display: flex; align-items: center; margin-bottom: 15px;">
-        <img th:if="${trackItem.track.album.images != null and trackItem.track.album.images.length > 0}"
-             th:src="${trackItem.track.album.images[0].url}"
-             alt="Album Art"
-             width="100"
-             style="margin-right: 15px;"/>
-        <div>
-            <h3 th:text="${trackItem.track.name}" style="margin: 0;">Track Name</h3>
-            <p th:text="${#strings.arrayJoin(trackItem.track.artists.![name], ', ')}" style="margin: 0;">Artist Names</p>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark" th:fragment="global-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">MyPlaylist</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" href="/playlists/my">My Playlists</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/search">Search</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/new-releases">New Releases</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/top-tracks">Top Tracks</a>
+                </li>
+            </ul>
+            <div class="d-flex">
+                <div sec:authorize="isAuthenticated()" class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span sec:authentication="name"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li>
+                            <form th:action="@{/logout}" method="post" style="display:inline;">
+                                <button type="submit" class="dropdown-item">Logout</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <a sec:authorize="isAnonymous()" href="/oauth2/authorization/spotify" class="btn btn-primary">Login</a>
+            </div>
         </div>
     </div>
-</div>
-<div th:if="${playlist == null}">
-    <p>Could not load the playlist.</p>
-</div>
+</nav>
 </body>
 </html>
