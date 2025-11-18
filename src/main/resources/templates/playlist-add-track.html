@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Add Track to Playlist</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 <div th:replace="~{global-top :: global-top}"></div>
@@ -29,11 +31,10 @@
     </div>
 
     <div th:if="${!playlists.isEmpty()}">
-        <form th:action="@{/playlists/add-track}" method="post">
+        <form id="addTrackForm" th:action="@{/playlists/add-track}" method="post" onsubmit="addTrack(event)">
             <input type="hidden" name="trackId" th:value="${trackId}"/>
             <input type="hidden" name="trackName" th:value="${trackName}"/>
             <input type="hidden" name="artistName" th:value="${artistName}"/>
-            <input type="hidden" name="previewUrl" th:value="${previewUrl}"/>
             <input type="hidden" name="imageUrl" th:value="${imageUrl}"/>
 
             <div class="mb-3">
@@ -53,6 +54,48 @@
     </div>
 </div>
 
+<!-- Toast UI -->
+<div th:replace="~{global-top :: toast-container}"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Toast script -->
+<div th:replace="~{global-top :: toast-script}"></div>
+
+<script>
+/*<![CDATA[*/
+    function addTrack(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const form = document.getElementById('addTrackForm');
+        const formData = new FormData(form);
+
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+        const headers = new Headers();
+        headers.append(csrfHeader, csrfToken);
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: headers,
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const message = `Successfully added to '${data.playlistName}'.`;
+                const playlistUrl = `/playlists/${data.playlistId}`;
+                showToast(message, playlistUrl);
+            } else {
+                showToast(data.message || 'An error occurred.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Failed to add track.');
+        });
+    }
+/*]]>*/
+</script>
 </body>
 </html>

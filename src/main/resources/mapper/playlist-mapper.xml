@@ -30,4 +30,8 @@
         WHERE id = #{id}
     </select>
 
+    <delete id="deletePlaylistById">
+        DELETE FROM playlists WHERE id = #{id}
+    </delete>
+
 </mapper>

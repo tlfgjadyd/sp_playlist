@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>My Playlist</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
 <div th:replace="~{global-top :: global-top}"></div>
@@ -15,7 +16,9 @@
             <p class="lead mb-4">Create your own playlists with songs from Spotify.</p>
             <!-- 로그인하지 않은 사용자 -->
             <div sec:authorize="isAnonymous()">
-                <a href="/oauth2/authorization/spotify" class="btn btn-primary btn-lg px-4 gap-3">Login with Spotify</a>
+                <a href="/oauth2/authorization/spotify" class="btn btn-primary btn-lg px-4 gap-3" th:style="'background-color: #1DB954; border-color: #1DB954;'">
+                    <i class="bi bi-spotify"></i> Login with Spotify
+                </a>
             </div>
             <!-- 로그인한 사용자 -->
             <div sec:authorize="isAuthenticated()">

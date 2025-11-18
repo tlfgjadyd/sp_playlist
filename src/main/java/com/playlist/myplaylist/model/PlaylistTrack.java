@@ -14,7 +14,7 @@ public class PlaylistTrack {
     private String trackId;
     private String trackName;
     private String artistName;
-    private String previewUrl;
+//    private String previewUrl;
     private String imageUrl;
     private Timestamp createdAt;
 
@@ -26,7 +26,7 @@ public class PlaylistTrack {
                 ", trackId='" + trackId + "'" +
                 ", trackName='" + trackName + "'" +
                 ", artistName='" + artistName + "'" +
-                ", previewUrl='" + previewUrl + "'" +
+//                ", previewUrl='" + previewUrl + "'" +
                 ", imageUrl='" + imageUrl + "'" +
                 ", createdAt=" + createdAt +
                 '}';

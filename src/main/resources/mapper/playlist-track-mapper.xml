@@ -10,21 +10,31 @@
         <result property="trackId" column="track_id"/>
         <result property="trackName" column="track_name"/>
         <result property="artistName" column="artist_name"/>
-        <result property="previewUrl" column="preview_url"/>
         <result property="imageUrl" column="image_url"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
     <insert id="insertPlaylistTrack" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO playlist_tracks (playlist_id, track_id, track_name, artist_name, preview_url, image_url)
-        VALUES (#{playlistId}, #{trackId}, #{trackName}, #{artistName}, #{previewUrl}, #{imageUrl})
+        INSERT INTO playlist_tracks (playlist_id, track_id, track_name, artist_name, image_url)
+        VALUES (#{playlistId}, #{trackId}, #{trackName}, #{artistName}, #{imageUrl})
     </insert>
 
     <select id="findByPlaylistId" resultMap="playlistTrackResultMap">
-        SELECT id, playlist_id, track_id, track_name, artist_name, preview_url, image_url, created_at
+        SELECT id, playlist_id, track_id, track_name, artist_name, image_url, created_at
         FROM playlist_tracks
         WHERE playlist_id = #{playlistId}
         ORDER BY created_at DESC
     </select>
+
+    <select id="existsByPlaylistIdAndTrackId" resultType="int">
+        SELECT COUNT(*)
+        FROM playlist_tracks
+        WHERE playlist_id = #{playlistId} AND track_id = #{trackId}
+    </select>
+
+    <delete id="deleteByPlaylistIdAndTrackId">
+        DELETE FROM playlist_tracks
+        WHERE playlist_id = #{playlistId} AND track_id = #{trackId}
+    </delete>
 
 </mapper>

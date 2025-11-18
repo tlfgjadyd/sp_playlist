@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.Track;
@@ -43,12 +44,24 @@ public class SpotifyController {
     }
 
     @GetMapping("/search")
-    public String search(@RequestParam(name = "q", required = false, defaultValue = "love") String query, Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
-        User user = customOAuth2User.getUser();
-        Paging<Track> trackPaging = spotifyService.searchTracks(user, query);
-        model.addAttribute("trackPaging", trackPaging);
+    public String search(@RequestParam(name = "q", required = false) String query, Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
+        if (query != null && !query.isBlank()) {
+            User user = customOAuth2User.getUser();
+            // Initial search with offset 0
+            Paging<Track> trackPaging = spotifyService.searchTracks(user, query, 0);
+            model.addAttribute("trackPaging", trackPaging);
+        }
         model.addAttribute("query", query);
         return "search-results";
+    }
+
+    @GetMapping("/api/search")
+    @ResponseBody
+    public Paging<Track> searchApi(@RequestParam(name = "q") String query,
+                                   @RequestParam(name = "offset", defaultValue = "0") int offset,
+                                   @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
+        User user = customOAuth2User.getUser();
+        return spotifyService.searchTracks(user, query, offset);
     }
 
 }

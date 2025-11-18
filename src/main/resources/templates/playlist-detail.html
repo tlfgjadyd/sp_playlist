@@ -11,7 +11,6 @@
 <div class="container mt-5">
     <h1 th:text="${playlist.name}">Playlist Name</h1>
     <p th:text="${playlist.description}">Playlist description.</p>
-
     <hr>
 
     <h2>Tracks</h2>
@@ -22,7 +21,8 @@
             <th scope="col">Image</th>
             <th scope="col">Track</th>
             <th scope="col">Artist</th>
-            <th scope="col">Preview</th>
+            <th scope="col">Delete</th>
+<!--            <th scope="col">Preview</th>-->
         </tr>
         </thead>
         <tbody>
@@ -33,13 +33,13 @@
             </td>
             <td th:text="${track.trackName}">Track Name</td>
             <td th:text="${track.artistName}">Artist Name</td>
+<!--            아마 빨간색 버튼 삭제-->
             <td>
-                <audio controls th:if="${track.previewUrl != null}">
-                    <source th:src="${track.previewUrl}" type="audio/mpeg">
-                    Your browser does not support the audio element.
-                </audio>
-                <span th:if="${track.previewUrl == null}">No Preview</span>
+                <form th:action="@{/playlists/{playlistId}/tracks/{trackId}/delete(playlistId=${playlist.id}, trackId=${track.trackId})}" method="post">
+                    <button type="submit" class=" btn btn-outline-danger btn-sm">Delete</button>
+                </form>
             </td>
+
         </tr>
         </tbody>
     </table>

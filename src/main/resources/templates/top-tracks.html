@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>My Top Tracks</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 <div th:replace="~{global-top :: global-top}"></div>
@@ -21,7 +23,14 @@
                         <h5 class="mb-1" th:text="${track.name}">Track Name</h5>
                         <p class="mb-1" th:text="${#strings.arrayJoin(track.artists.![name], ', ')}">Artist Names</p>
                     </div>
-                    <a th:href="@{/playlists/add-track(trackId=${track.id}, trackName=${track.name}, artistName=${#strings.arrayJoin(track.artists.![name], ', ')}, previewUrl=${track.previewUrl}, imageUrl=${track.album.images.length > 0 ? track.album.images[0].url : ''})}" class="btn btn-success btn-sm">Add to Playlist</a>
+                    <button class="btn btn-success btn-sm"
+                            th:attr="data-track-id=${track.id},
+                                     data-track-name=${track.name},
+                                     data-artist-name=${#strings.arrayJoin(track.artists.![name], ', ')},
+                                     data-image-url=${track.album.images.length > 0 ? track.album.images[0].url : ''}"
+                            onclick="openAddToPlaylistModal(this)">
+                        Add to Playlist
+                    </button>
                 </div>
             </div>
         </div>
@@ -31,6 +40,117 @@
     </div>
 </div>
 
+<!-- Add to Playlist Modal -->
+<div class="modal fade" id="addToPlaylistModal" tabindex="-1" aria-labelledby="addToPlaylistModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addToPlaylistModalLabel">Add to Playlist</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Add "<strong id="modalTrackName"></strong>" to which playlist?</p>
+                <form id="modalAddTrackForm">
+                    <input type="hidden" id="modalTrackId" name="trackId">
+                    <input type="hidden" id="modalTrackNameInput" name="trackName">
+                    <input type="hidden" id="modalArtistName" name="artistName">
+                    <input type="hidden" id="modalImageUrl" name="imageUrl">
+                    <div class="mb-3">
+                        <label for="modalPlaylistSelect" class="form-label">Select Playlist:</label>
+                        <select id="modalPlaylistSelect" name="playlistId" class="form-select" required>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="handleModalFormSubmit()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast UI -->
+<div th:replace="~{global-top :: toast-container}"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Toast script -->
+<div th:replace="~{global-top :: toast-script}"></div>
+
+<script>
+/*<![CDATA[*/
+    const addToPlaylistModal = new bootstrap.Modal(document.getElementById('addToPlaylistModal'));
+
+    function openAddToPlaylistModal(button) {
+        // Store track data in the modal form
+        document.getElementById('modalTrackName').textContent = button.dataset.trackName;
+        document.getElementById('modalTrackId').value = button.dataset.trackId;
+        document.getElementById('modalTrackNameInput').value = button.dataset.trackName;
+        document.getElementById('modalArtistName').value = button.dataset.artistName;
+        document.getElementById('modalImageUrl').value = button.dataset.imageUrl;
+
+        const playlistSelect = document.getElementById('modalPlaylistSelect');
+        playlistSelect.innerHTML = '<option>Loading playlists...</option>'; // Clear previous options
+
+        // Fetch user's playlists
+        fetch('/playlists/api/my')
+            .then(response => response.json())
+            .then(playlists => {
+                playlistSelect.innerHTML = ''; // Clear loading message
+                if (playlists.length > 0) {
+                    playlists.forEach(playlist => {
+                        const option = document.createElement('option');
+                        option.value = playlist.id;
+                        option.textContent = playlist.name;
+                        playlistSelect.appendChild(option);
+                    });
+                } else {
+                    playlistSelect.innerHTML = '<option value="">No playlists found</option>';
+                    playlistSelect.disabled = true;
+                }
+            });
+
+        addToPlaylistModal.show();
+    }
+
+    function handleModalFormSubmit() {
+        const form = document.getElementById('modalAddTrackForm');
+        const formData = new FormData(form);
+
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        const headers = new Headers();
+        headers.append(csrfHeader, csrfToken);
+
+        fetch('/playlists/add-track', {
+            method: 'POST',
+            headers: headers,
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                showToast(`Error: ${response.statusText}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const message = `Successfully added to '${data.playlistName}'.`;
+                const playlistUrl = `/playlists/${data.playlistId}`;
+                showToast(message, playlistUrl);
+            } else {
+                showToast(data.message || 'An error occurred.');
+            }
+            addToPlaylistModal.hide();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            addToPlaylistModal.hide();
+        });
+    }
+/*]]>*/
+</script>
 </body>
 </html>

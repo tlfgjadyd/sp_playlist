@@ -10,4 +10,5 @@ public interface PlaylistMapper {
     int insertPlaylist(Playlist playlist);
     List<Playlist> findByUserId(int userId);
     Playlist findById(int id);
+    int deletePlaylistById(int id);
 }

@@ -79,11 +79,12 @@ public class SpotifyService {
         }
     }
 
-    public Paging<Track> searchTracks(User user, String query) {
+    public Paging<Track> searchTracks(User user, String query, int offset) {
         try {
             SpotifyApi api = getInitializedSpotifyApi(user);
             SearchTracksRequest searchTracksRequest = api.searchTracks(query)
-                    .limit(10)
+                    .limit(20) // Increase limit for better infinite scroll experience
+                    .offset(offset)
                     .build();
             return searchTracksRequest.execute();
         } catch (Exception e) {

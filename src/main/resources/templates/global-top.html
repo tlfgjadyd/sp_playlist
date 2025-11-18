@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>My Playlist</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark" th:fragment="global-top">
-    <div class="container-fluid">
+    <!-- ... (navbar content remains the same) ... -->
+    <div class="container-xxl bd-gutter flex-wrap flex-lg-nowrap">
         <a class="navbar-brand" href="/">MyPlaylist</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -42,10 +45,40 @@
                         </li>
                     </ul>
                 </div>
-                <a sec:authorize="isAnonymous()" href="/oauth2/authorization/spotify" class="btn btn-primary">Login</a>
+                <a sec:authorize="isAnonymous()" href="/oauth2/authorization/spotify" class="btn btn-primary" th:style="'background-color: #FFFFFF; border-color: #FFFFFF; color : #000000'">Login</a>
             </div>
         </div>
     </div>
 </nav>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" th:fragment="toast-container">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Notification</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <!-- Message will be injected here -->
+        </div>
+    </div>
+</div>
+
+<script th:fragment="toast-script">
+/*<![CDATA[*/
+    const toastEl = document.getElementById('liveToast');
+    const toast = new bootstrap.Toast(toastEl);
+
+    function showToast(message, playlistUrl) {
+        const toastBody = toastEl.querySelector('.toast-body');
+        let fullMessage = message;
+        if (playlistUrl) {
+            fullMessage += ` <a href="${playlistUrl}" class="alert-link">View Playlist</a>`;
+        }
+        toastBody.innerHTML = fullMessage;
+        toast.show();
+    }
+/*]]>*/
+</script>
 </body>
 </html>

@@ -26,7 +26,7 @@ public class PlaylistController {
 
     @GetMapping("/create")
     public String showCreatePlaylistForm() {
-        return "playlist-create"; // src/main/resources/templates/playlist-create.html 뷰를 찾습니다.
+        return "playlist-create"; // src/main/resources/templates/playlist-create.html
     }
 
     @PostMapping("/create")
@@ -51,11 +51,17 @@ public class PlaylistController {
         return "playlist-my";
     }
 
+    @GetMapping("/api/my")
+    @ResponseBody
+    public List<Playlist> getMyPlaylistsApi(@AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
+        int userId = customOAuth2User.getUser().getId();
+        return playlistMapper.findByUserId(userId);
+    }
+
     @GetMapping("/add-track")
     public String showAddTrackToPlaylistForm(@RequestParam String trackId,
                                              @RequestParam String trackName,
                                              @RequestParam String artistName,
-                                             @RequestParam(required = false) String previewUrl,
                                              @RequestParam(required = false) String imageUrl,
                                              Model model,
                                              @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
@@ -65,7 +71,6 @@ public class PlaylistController {
         model.addAttribute("trackId", trackId);
         model.addAttribute("trackName", trackName);
         model.addAttribute("artistName", artistName);
-        model.addAttribute("previewUrl", previewUrl);
         model.addAttribute("imageUrl", imageUrl);
         model.addAttribute("playlists", playlists);
 
@@ -73,33 +78,60 @@ public class PlaylistController {
     }
 
     @PostMapping("/add-track")
-    public String addTrackToPlaylist(@RequestParam int playlistId,
-                                     @RequestParam String trackId,
-                                     @RequestParam String trackName,
-                                     @RequestParam String artistName,
-                                     @RequestParam(required = false) String previewUrl,
-                                     @RequestParam(required = false) String imageUrl) {
-        PlaylistTrack playlistTrack = new PlaylistTrack();
-        playlistTrack.setPlaylistId(playlistId);
-        playlistTrack.setTrackId(trackId);
-        playlistTrack.setTrackName(trackName);
-        playlistTrack.setArtistName(artistName);
-        playlistTrack.setPreviewUrl(previewUrl);
-        playlistTrack.setImageUrl(imageUrl);
+    @ResponseBody
+        public java.util.Map<String, Object> addTrackToPlaylist(@RequestParam int playlistId,
+                                                                @RequestParam String trackId,
+                                                                @RequestParam String trackName,
+                                                                @RequestParam String artistName,
+                                                                @RequestParam(required = false) String imageUrl) {
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+    
+            // Check if the track already exists in the playlist
+            int count = playlistTrackMapper.existsByPlaylistIdAndTrackId(playlistId, trackId);
+            if (count > 0) {
+                response.put("success", false);
+                response.put("message", "Track already exists in this playlist.");
+                return response;
+            }
+    
+            PlaylistTrack playlistTrack = new PlaylistTrack();
+            playlistTrack.setPlaylistId(playlistId);
+            playlistTrack.setTrackId(trackId);
+            playlistTrack.setTrackName(trackName);
+            playlistTrack.setArtistName(artistName);
+            playlistTrack.setImageUrl(imageUrl);
+    
+            playlistTrackMapper.insertPlaylistTrack(playlistTrack);
+    
+            Playlist playlist = playlistMapper.findById(playlistId);
+    
+            response.put("success", true);
+            response.put("playlistId", playlistId);
+            response.put("playlistName", playlist.getName());
+            return response;
+        }
 
-        playlistTrackMapper.insertPlaylistTrack(playlistTrack);
+        @GetMapping("/{playlistId}")
+        public String showPlaylistDetail(@PathVariable int playlistId, Model model) {
+            Playlist playlist = playlistMapper.findById(playlistId);
+            List<PlaylistTrack> tracks = playlistTrackMapper.findByPlaylistId(playlistId);
+            model.addAttribute("playlist", playlist);
+            model.addAttribute("tracks", tracks);
+            return "playlist-detail";
+        }
 
-        return "redirect:/playlists/" + playlistId; // 플레이리스트 상세 페이지로 리다이렉트
-    }
+    
 
-    @GetMapping("/{playlistId}")
-    public String showPlaylistDetail(@PathVariable int playlistId, Model model) {
-        Playlist playlist = playlistMapper.findById(playlistId);
-        List<PlaylistTrack> tracks = playlistTrackMapper.findByPlaylistId(playlistId);
-
-        model.addAttribute("playlist", playlist);
-        model.addAttribute("tracks", tracks);
-
-        return "playlist-detail";
-    }
-}
+        @PostMapping("/{playlistId}/tracks/{trackId}/delete")
+            public String deleteTrackFromPlaylist(@PathVariable int playlistId,
+                                                  @PathVariable String trackId) {
+                playlistTrackMapper.deleteByPlaylistIdAndTrackId(playlistId, trackId);
+                return "redirect:/playlists/" + playlistId;
+            }
+        
+            @PostMapping("/{playlistId}/delete")
+            public String deletePlaylist(@PathVariable int playlistId) {
+                playlistMapper.deletePlaylistById(playlistId);
+                return "redirect:/playlists/my";
+            }
+        }
