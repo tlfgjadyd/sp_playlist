@@ -1,0 +1,28 @@
+body {
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.card-album, .list-group-item {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card-album:hover, .list-group-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background-color: #1DB954;
+    border-color: #1DB954;
+}
+
+.btn-primary:hover {
+    background-color: #1ED760;
+    border-color: #1ED760;
+}
+
+.navbar-dark .navbar-brand {
+    font-weight: bold;
+    color: #1DB954; /* Spotify Green */
+}

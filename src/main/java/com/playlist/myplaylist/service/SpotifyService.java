@@ -5,9 +5,13 @@ import com.playlist.myplaylist.model.User;
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.credentials.AuthorizationCodeCredentials;
+import se.michaelthelin.spotify.model_objects.specification.Album;
 import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
+import se.michaelthelin.spotify.requests.data.albums.GetAlbumRequest;
+import se.michaelthelin.spotify.requests.data.albums.GetAlbumsTracksRequest;
 import se.michaelthelin.spotify.requests.data.browse.GetListOfNewReleasesRequest;
 import se.michaelthelin.spotify.requests.data.personalization.simplified.GetUsersTopTracksRequest;
 import se.michaelthelin.spotify.requests.data.search.simplified.SearchTracksRequest;
@@ -48,19 +52,19 @@ public class SpotifyService {
     }
 
 
-    public AlbumSimplified[] getNewReleases(User user) {
+    public Paging<AlbumSimplified> getNewReleases(User user, int limit, int offset) {
         try {
             SpotifyApi api = getInitializedSpotifyApi(user);
             GetListOfNewReleasesRequest getListOfNewReleasesRequest = api.getListOfNewReleases()
-                    .limit(10)
+                    .limit(limit)
+                    .offset(offset)
                     .build();
 
-            Paging<AlbumSimplified> albumSimplifiedPaging = getListOfNewReleasesRequest.execute();
-            return albumSimplifiedPaging.getItems();
+            return getListOfNewReleasesRequest.execute();
         } catch (Exception e) {
             System.err.println("Error getting new releases: " + e.getMessage());
             e.printStackTrace();
-            return new AlbumSimplified[0];
+            return null;
         }
     }
 
@@ -89,6 +93,32 @@ public class SpotifyService {
             return searchTracksRequest.execute();
         } catch (Exception e) {
             System.err.println("Error searching tracks: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public Album getAlbum(User user, String albumId) {
+        try {
+            SpotifyApi api = getInitializedSpotifyApi(user);
+            GetAlbumRequest getAlbumRequest = api.getAlbum(albumId).build();
+            return getAlbumRequest.execute();
+        } catch (Exception e) {
+            System.err.println("Error getting album: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public Paging<TrackSimplified> getAlbumTracks(User user, String albumId) {
+        try {
+            SpotifyApi api = getInitializedSpotifyApi(user);
+            GetAlbumsTracksRequest getAlbumsTracksRequest = api.getAlbumsTracks(albumId)
+                    .limit(50) // Get up to 50 tracks
+                    .build();
+            return getAlbumsTracksRequest.execute();
+        } catch (Exception e) {
+            System.err.println("Error getting album tracks: " + e.getMessage());
             e.printStackTrace();
             return null;
         }

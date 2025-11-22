@@ -5,52 +5,61 @@
 <div th:replace="~{global-top :: global-top}"></div>
 
 <div class="container mt-5">
-    <h1>Search Tracks</h1>
-    <form th:action="@{/search}" method="get" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="q" class="form-control" placeholder="Search for a track..." th:value="${query}">
-            <button type="submit" class="btn btn-primary">Search</button>
-        </div>
-    </form>
-
-    <!-- Initial state before a search is performed -->
-    <div th:if="${query == null or query.isBlank()}">
-        <p class="text-muted">Please enter a search term to find tracks.</p>
-    </div>
-
-    <!-- Search results -->
-    <div th:if="${query != null and !query.isBlank()}">
-        <h2 th:if="${trackPaging != null and trackPaging.total > 0}">Search Results for "<span th:text="${query}"></span>"</h2>
-
-        <div id="search-results-container" class="list-group">
-            <!-- Initial tracks are rendered here by Thymeleaf -->
-            <div th:each="track : ${trackPaging?.items}" class="list-group-item list-group-item-action">
-                <div class="d-flex align-items-center">
-                    <img th:if="${track.album.images.length > 0}" th:src="${track.album.images[0].url}" alt="Album Art" style="width: 80px; height: 80px; margin-right: 15px;">
-                    <div class="flex-grow-1">
-                        <h5 class="mb-1" th:text="${track.name}">Track Name</h5>
-                        <p class="mb-1" th:text="${#strings.arrayJoin(track.artists.![name], ', ')}">Artist Names</p>
-                    </div>
-                    <button class="btn btn-success btn-sm"
-                            th:attr="data-track-id=${track.id},
-                                     data-track-name=${track.name},
-                                     data-artist-name=${#strings.arrayJoin(track.artists.![name], ', ')},
-                                     data-image-url=${track.album.images.length > 0 ? track.album.images[0].url : ''}"
-                            onclick="openAddToPlaylistModal(this)">
-                        Add to Playlist
-                    </button>
-                </div>
+    <div th:if="${album != null}">
+        <div class="row">
+            <div class="col-md-4">
+                <img th:if="${album.images != null && album.images.length > 0}"
+                     th:src="${album.images[0].url}"
+                     class="img-fluid rounded"
+                     alt="Album Cover">
+            </div>
+            <div class="col-md-8">
+                <h1 th:text="${album.name}">Album Name</h1>
+                <p class="lead" th:text="${#strings.arrayJoin(album.artists.![name], ', ')}">Artists</p>
+                <p>
+                    <small class="text-muted" th:text="'Release Date: ' + ${album.releaseDate}"></small>
+                    <br>
+                    <small class="text-muted" th:text="${album.tracks.total} + ' tracks'"></small>
+                </p>
             </div>
         </div>
 
-        <!-- Loading Indicator -->
-        <div id="loading" style="display: none; text-align: center; padding: 20px;">
-            <p>Loading more results...</p>
-        </div>
+        <hr class="my-4">
 
-        <div th:if="${trackPaging == null or trackPaging.total == 0}" class="alert alert-info mt-3">
-            <p>No tracks found for "<span th:text="${query}"></span>".</p>
-        </div>
+        <h2>Tracks</h2>
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Title</th>
+                <th scope="col">Artists</th>
+                <th scope="col">Duration</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="track : ${tracks}">
+                <th scope="row" th:text="${track.trackNumber}"></th>
+                <td th:text="${track.name}">Track Name</td>
+                <td th:text="${track.artists}">Artist Name</td>
+                <td th:text="${track.duration}">3:45</td>
+                <td>
+                    <button class="btn btn-success btn-sm float-end"
+                            th:attr="data-track-id=${track.id},
+                                     data-track-name=${track.name},
+                                     data-artist-name=${track.artists},
+                                     data-image-url=${album.images.length > 0 ? album.images[0].url : ''}"
+                            onclick="openAddToPlaylistModal(this)">
+                        Add to Playlist
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${album == null}" class="alert alert-warning" role="alert">
+        Album details could not be loaded.
     </div>
 </div>
 
@@ -85,7 +94,6 @@
     </div>
 </div>
 
-
 <!-- Toast UI -->
 <div th:replace="~{global-top :: toast-container}"></div>
 
@@ -94,7 +102,7 @@
 <div th:replace="~{global-top :: toast-script}"></div>
 
 <script th:inline="javascript">
-/*<![CDATA[*/
+    /*<![CDATA[*/
     const addToPlaylistModal = new bootstrap.Modal(document.getElementById('addToPlaylistModal'));
 
     function openAddToPlaylistModal(button) {
@@ -166,77 +174,8 @@
             addToPlaylistModal.hide();
         });
     }
-
-    // --- Infinite Scroll Logic ---
-    const trackPaging = /*[[${trackPaging}]]*/ null;
-    const query = /*[[${query}]]*/ null;
-
-    if (query && trackPaging) {
-        let nextOffset = trackPaging.offset + trackPaging.limit;
-        let total = trackPaging.total;
-        let isLoading = false;
-
-        const loadingIndicator = document.getElementById('loading');
-        const resultsContainer = document.getElementById('search-results-container');
-
-        window.onscroll = () => {
-            if (isLoading || nextOffset >= total) return;
-
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
-                isLoading = true;
-                loadingIndicator.style.display = 'block';
-
-                fetch(`/api/search?q=${encodeURIComponent(query)}&offset=${nextOffset}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.items.forEach(track => {
-                            const trackElement = createTrackElement(track);
-                            resultsContainer.appendChild(trackElement);
-                        });
-
-                        nextOffset = data.offset + data.limit;
-                        isLoading = false;
-                        loadingIndicator.style.display = 'none';
-                    })
-                    .catch(error => {
-                        console.error('Error fetching more tracks:', error);
-                        isLoading = false;
-                        loadingIndicator.style.display = 'none';
-                    });
-            }
-        };
-
-        function createTrackElement(track) {
-            const item = document.createElement('div');
-            item.className = 'list-group-item list-group-item-action';
-
-            const imageUrl = track.album.images.length > 0 ? track.album.images[0].url : '';
-            const artistNames = track.artists.map(artist => artist.name).join(', ');
-
-            const button = document.createElement('button');
-            button.className = 'btn btn-success btn-sm';
-            button.textContent = 'Add to Playlist';
-            button.dataset.trackId = track.id;
-            button.dataset.trackName = track.name;
-            button.dataset.artistName = artistNames;
-            button.dataset.imageUrl = imageUrl;
-            button.onclick = () => openAddToPlaylistModal(button);
-
-            item.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <img src="${imageUrl}" alt="Album Art" style="width: 80px; height: 80px; margin-right: 15px;">
-                    <div class="flex-grow-1">
-                        <h5 class="mb-1">${track.name}</h5>
-                        <p class="mb-1">${artistNames}</p>
-                    </div>
-                </div>
-            `;
-            // Append the button to the inner div
-            item.querySelector('.d-flex').appendChild(button);
-            return item;
-        }
-    }
-/*]]>*/
+    /*]]>*/
 </script>
+
 </body>
 </html>

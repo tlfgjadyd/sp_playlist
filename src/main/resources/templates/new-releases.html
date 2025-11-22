@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>New Releases</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-</head>
+<head th:replace="~{global-top :: common-head}"></head>
 <body>
 <div th:replace="~{global-top :: global-top}"></div>
 
 <div class="container mt-5">
     <h1>New Releases on Spotify</h1>
-    <div th:if="${newReleases != null and newReleases.length > 0}" class="row row-cols-1 row-cols-md-3 g-4">
-        <div th:each="album : ${newReleases}" class="col">
-            <div class="card h-100">
+
+    <div id="album-container"
+         th:if="${paging != null and paging.items.length > 0}"
+         class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+
+        <div th:each="album : ${paging.items}" class="col">
+            <div class="card h-100 card-album">
                 <img th:if="${album.images != null and album.images.length > 0}"
                      th:src="${album.images[0].url}"
                      class="card-img-top"
@@ -23,16 +23,99 @@
                 </div>
                 <div class="card-footer">
                     <small class="text-muted" th:text="'Release Date: ' + ${album.releaseDate}">Release Date</small>
-                    <a th:href="@{/playlists/add-track(trackId=${album.id}, trackName=${album.name}, artistName=${#strings.arrayJoin(album.artists.![name], ', ')}, imageUrl=${album.images != null and album.images.length > 0 ? album.images[0].url : ''})}" class="btn btn-primary btn-sm float-end">Add to Playlist</a>
+                    <a th:href="@{/album/{id}(id=${album.id})}"
+                       class="btn btn-secondary btn-sm float-end">앨범 보기</a>
                 </div>
             </div>
         </div>
     </div>
-    <div th:if="${newReleases == null or newReleases.length == 0}" class="alert alert-info mt-4" role="alert">
+
+    <div id="loading" style="display: none; text-align: center; padding: 20px;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div th:if="${paging == null or paging.items.length == 0}" class="alert alert-info mt-4" role="alert">
         No new releases found.
     </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const pagingData = /*[[${paging}]]*/ null;
+
+    if (pagingData) {
+        let nextOffset = pagingData.offset + pagingData.limit;
+        let total = pagingData.total;
+        let limit = pagingData.limit;
+        let isLoading = false;
+
+        const loadingIndicator = document.getElementById('loading');
+        const container = document.getElementById('album-container');
+
+        window.onscroll = () => {
+            if (isLoading || nextOffset >= total) return;
+
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+                loadMoreAlbums();
+            }
+        };
+
+        function loadMoreAlbums() {
+            isLoading = true;
+            loadingIndicator.style.display = 'block';
+
+            fetch(`/api/new-releases?limit=${limit}&offset=${nextOffset}`)
+                .then(response => response.json())
+                .then(data => {
+                    const items = data.items;
+
+                    items.forEach(album => {
+                        const cardCol = createAlbumCard(album);
+                        container.appendChild(cardCol);
+                    });
+
+                    nextOffset = data.offset + data.limit;
+                    if (nextOffset >= data.total) {
+                        // No more items to load
+                    }
+                    
+                    isLoading = false;
+                    loadingIndicator.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error loading albums:', error);
+                    isLoading = false;
+                    loadingIndicator.style.display = 'none';
+                });
+        }
+
+        function createAlbumCard(album) {
+            const col = document.createElement('div');
+            col.className = 'col';
+
+            const imageUrl = (album.images && album.images.length > 0) ? album.images[0].url : '';
+            const artistNames = album.artists.map(a => a.name).join(', ');
+
+            col.innerHTML = `
+                <div class="card h-100 card-album">
+                    ${imageUrl ? `<img src="${imageUrl}" class="card-img-top" alt="Album Art">` : ''}
+                    <div class="card-body">
+                        <h5 class="card-title">${album.name}</h5>
+                        <p class="card-text">${artistNames}</p>
+                    </div>
+                    <div class="card-footer">
+                        <small class="text-muted">Release Date: ${album.releaseDate}</small>
+                        <a href="/album/${album.id}"
+                           class="btn btn-secondary btn-sm float-end">앨범 보기</a>
+                    </div>
+                </div>
+            `;
+            return col;
+        }
+    }
+    /*]]>*/
+</script>
 </body>
 </html>
