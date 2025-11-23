@@ -64,7 +64,7 @@
     spring.security.oauth2.client.registration.spotify.client-secret=${SPOTIFY_CLIENT_SECRET}
     ```
 
-#### 2단계: Render 서비스 생성 및 설정
+#### 2단계: Render 서비스 생성 및 설정        
 
 1.  **Render 가입**: [Render.com](https://render.com/)에 GitHub 계정으로 가입합니다.
 

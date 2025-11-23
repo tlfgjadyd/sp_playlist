@@ -1,0 +1,45 @@
+server:
+  forward-headers-strategy: framework
+  port: 8080
+
+spotify:
+  client-id: ${SPOTIFY_CLIENT_ID}
+  client-secret: ${SPOTIFY_CLIENT_SECRET}
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  security:
+    oauth2:
+      client:
+        registration:
+          spotify:
+            client-id: ${SPOTIFY_CLIENT_ID} # 환경 변수 직접 참조
+            client-secret: ${SPOTIFY_CLIENT_SECRET} # 환경 변수 직접 참조
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            scope: user-read-private,user-read-email,playlist-read-private,playlist-read-collaborative,user-top-read # 필요한 스코프 추가
+        provider:
+          spotify:
+            authorization-uri: https://accounts.spotify.com/authorize
+            token-uri: https://accounts.spotify.com/api/token
+            user-info-uri: https://api.spotify.com/v1/me
+            user-name-attribute: id # Spotify 사용자 ID를 가져오는 속성
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  config-location: classpath:mybatis-config.xml
+
+logging:
+    level:
+     org.springframework.security: DEBUG
+     com.playlist.myplaylist: DEBUG
+
+
+
+
+
+
