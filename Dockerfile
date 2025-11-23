@@ -1,5 +1,5 @@
 # Use an official OpenJDK runtime as a parent image
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jdk
 
 # Set the working directory in the container
 WORKDIR /app
@@ -12,6 +12,9 @@ COPY settings.gradle .
 
 # Grant execution permissions to the Gradle wrapper
 RUN chmod +x ./gradlew
+
+# Copy the source code
+COPY src ./src
 
 # Build the application
 # This will also download dependencies

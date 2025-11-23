@@ -1,0 +1,37 @@
+-- users 테이블 생성 (가장 먼저 실행)
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    spotify_user_id VARCHAR(100) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    spotify_access_token VARCHAR(300),
+    spotify_refresh_token VARCHAR(255),
+    spotify_access_token_expires_at TIMESTAMP
+);
+
+-- playlists 테이블 생성 (users 테이블 생성 후 실행)
+CREATE TABLE playlists (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT playlists_user_id_fk FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+-- playlists 테이블의 user_id 컬럼에 인덱스 생성
+CREATE INDEX idx_playlists_user_id ON playlists(user_id);
+
+-- playlist_tracks 테이블 생성 (playlists 테이블 생성 후 실행)
+CREATE TABLE playlist_tracks (
+    id SERIAL PRIMARY KEY,
+    playlist_id INT NOT NULL,
+    track_id VARCHAR(100) NOT NULL,
+    track_name VARCHAR(200) NOT NULL,
+    artist_name VARCHAR(200),
+    image_url VARCHAR(300),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT playlist_tracks_playlist_id_fk FOREIGN KEY (playlist_id) REFERENCES playlists (id) ON DELETE CASCADE,
+    UNIQUE (playlist_id, track_id)
+);
