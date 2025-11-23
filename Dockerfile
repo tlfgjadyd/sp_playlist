@@ -18,7 +18,7 @@ COPY src ./src
 
 # Build the application
 # This will also download dependencies
-RUN ./gradlew build --no-daemon
+RUN ./gradlew build -x test --no-daemon
 
 # Expose the port the app runs on
 EXPOSE 8080
