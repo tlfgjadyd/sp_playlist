@@ -1,28 +1,42 @@
 <!DOCTYPE html>
+<!-- Thymeleaf 네임스페이스 선언 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{global-top :: common-head}"></head>
+<head>
+    <!-- 공통 헤더 정보 (CSS, 메타 태그 등) 삽입 -->
+    <head th:replace="~{global-top :: common-head}"></head>
+</head>
 <body>
+<!-- 모든 페이지 상단에 표시될 네비게이션 바 삽입 -->
 <div th:replace="~{global-top :: global-top}"></div>
 
+<!-- 페이지 주요 컨텐츠 시작 -->
 <div class="container mt-5">
     <h1>New Releases on Spotify</h1>
 
+    <!-- 앨범 목록을 담는 컨테이너 -->
+    <!-- th:if: 페이징 정보가 있고, 아이템이 하나 이상 있을 경우에만 렌더링 -->
     <div id="album-container"
          th:if="${paging != null and paging.items.length > 0}"
          class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
 
+        <!-- th:each: 'paging.items' 리스트를 순회하며 각 앨범에 대한 카드 생성 -->
         <div th:each="album : ${paging.items}" class="col">
             <div class="card h-100 card-album">
+                <!-- 앨범 이미지가 있을 경우 첫 번째 이미지 표시 -->
                 <img th:if="${album.images != null and album.images.length > 0}"
                      th:src="${album.images[0].url}"
                      class="card-img-top"
                      alt="Album Art">
                 <div class="card-body">
+                    <!-- 앨범 이름 -->
                     <h5 class="card-title" th:text="${album.name}">Album Name</h5>
+                    <!-- 아티스트 이름 목록 -->
                     <p class="card-text" th:text="${#strings.arrayJoin(album.artists.![name], ', ')}">Artists</p>
                 </div>
                 <div class="card-footer">
+                    <!-- 출시일 -->
                     <small class="text-muted" th:text="'Release Date: ' + ${album.releaseDate}">Release Date</small>
+                    <!-- 앨범 상세 페이지로 이동하는 링크 -->
                     <a th:href="@{/album/{id}(id=${album.id})}"
                        class="btn btn-secondary btn-sm float-end">앨범 보기</a>
                 </div>
@@ -30,59 +44,71 @@
         </div>
     </div>
 
+    <!-- 추가 앨범 로딩 시 표시될 스피너 -->
     <div id="loading" style="display: none; text-align: center; padding: 20px;">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
     </div>
 
+    <!-- 표시할 새 릴리즈 앨범이 없을 경우 메시지 표시 -->
     <div th:if="${paging == null or paging.items.length == 0}" class="alert alert-info mt-4" role="alert">
         No new releases found.
     </div>
 </div>
+
+<!-- 부트스트랩 JS 번들 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 무한 스크롤 구현을 위한 자바스크립트 -->
 <script th:inline="javascript">
     /*<![CDATA[*/
+    // Thymeleaf 모델에서 페이징 데이터를 JS 변수로 가져옴
     const pagingData = /*[[${paging}]]*/ null;
 
     if (pagingData) {
+        // 다음 요청을 위한 오프셋, 전체 아이템 수, 한 번에 가져올 아이템 수
         let nextOffset = pagingData.offset + pagingData.limit;
         let total = pagingData.total;
         let limit = pagingData.limit;
-        let isLoading = false;
+        let isLoading = false; // 중복 요청 방지를 위한 플래그
 
         const loadingIndicator = document.getElementById('loading');
         const container = document.getElementById('album-container');
 
+        // 스크롤 이벤트 핸들러
         window.onscroll = () => {
+            // 로딩 중이거나 모든 아이템을 다 불러왔으면 실행하지 않음
             if (isLoading || nextOffset >= total) return;
 
+            // 페이지 끝에 거의 도달했을 때
             if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
-                loadMoreAlbums();
+                loadMoreAlbums(); // 추가 앨범 로드 함수 호출
             }
         };
 
+        // 추가 앨범을 비동기적으로 로드하는 함수
         function loadMoreAlbums() {
             isLoading = true;
-            loadingIndicator.style.display = 'block';
+            loadingIndicator.style.display = 'block'; // 로딩 스피너 표시
 
+            // 서버의 API 엔드포인트에 다음 페이지 데이터 요청
             fetch(`/api/new-releases?limit=${limit}&offset=${nextOffset}`)
                 .then(response => response.json())
                 .then(data => {
                     const items = data.items;
 
+                    // 받아온 각 앨범에 대해 앨범 카드 DOM 요소를 생성하여 컨테이너에 추가
                     items.forEach(album => {
                         const cardCol = createAlbumCard(album);
                         container.appendChild(cardCol);
                     });
 
+                    // 다음 요청을 위한 오프셋 업데이트
                     nextOffset = data.offset + data.limit;
-                    if (nextOffset >= data.total) {
-                        // No more items to load
-                    }
-                    
+
                     isLoading = false;
-                    loadingIndicator.style.display = 'none';
+                    loadingIndicator.style.display = 'none'; // 로딩 스피너 숨김
                 })
                 .catch(error => {
                     console.error('Error loading albums:', error);
@@ -91,6 +117,7 @@
                 });
         }
 
+        // 앨범 데이터를 받아 HTML 카드 요소를 생성하는 함수
         function createAlbumCard(album) {
             const col = document.createElement('div');
             col.className = 'col';

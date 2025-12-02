@@ -1,10 +1,12 @@
 package com.playlist.myplaylist.model;
 
-// Using lombok for boilerplate code reduction
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * UI용 트랙의 간소화된 보기를 나타내는 데이터 전송 객체
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

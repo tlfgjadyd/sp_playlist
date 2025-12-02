@@ -1,27 +1,41 @@
 <!DOCTYPE html>
+<!-- Thymeleaf 및 Spring Security Extras 네임스페이스 선언 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{global-top :: common-head}">
+<head>
+    <!-- 공통 헤더 정보 (CSS, 메타 태그 등) 삽입 -->
+    <head th:replace="~{global-top :: common-head}"></head>
+    <!-- 이 페이지에서만 사용하는 부트스트랩 아이콘 CSS 추가 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
+<!-- 모든 페이지 상단에 표시될 네비게이션 바 삽입 -->
 <div th:replace="~{global-top :: global-top}"></div>
 
+<!-- 페이지 주요 컨텐츠 시작 -->
 <div class="container mt-5">
     <div class="px-4 py-5 my-5 text-center">
+        <!-- 페이지 제목 -->
         <h1 class="display-5 fw-bold">Welcome to My Playlist</h1>
         <div class="col-lg-6 mx-auto">
             <p class="lead mb-4">Create your own playlists with songs from Spotify.</p>
-            <!-- 로그인하지 않은 사용자 -->
+
+            <!-- sec:authorize="isAnonymous()": 인증되지 않은(익명) 사용자에게만 이 블록을 표시 -->
             <div sec:authorize="isAnonymous()">
+                <!-- Spotify 로그인 페이지로 이동하는 링크 -->
                 <a href="/oauth2/authorization/spotify" class="btn btn-primary btn-lg px-4 gap-3" th:style="'background-color: #1DB954; border-color: #1DB954;'">
                     <i class="bi bi-spotify"></i> Login with Spotify
                 </a>
             </div>
-            <!-- 로그인한 사용자 -->
+
+            <!-- sec:authorize="isAuthenticated()": 인증된 사용자에게만 이 블록을 표시 -->
             <div sec:authorize="isAuthenticated()">
+                <!-- 환영 메시지와 함께 사용자 이름 표시 -->
+                <!-- sec:authentication="name": 현재 인증된 사용자의 이름을 가져와서 표시 -->
                 <p class="lead mb-4">Welcome, <span sec:authentication="name" class="fw-bold"></span>!</p>
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <!-- 'My Playlists' 페이지로 이동하는 버튼 -->
                     <a href="/playlists/my" class="btn btn-primary btn-lg px-4 gap-3">My Playlists</a>
+                    <!-- 'Search Tracks' 페이지로 이동하는 버튼 -->
                     <a href="/search" class="btn btn-outline-secondary btn-lg px-4">Search Tracks</a>
                 </div>
             </div>
@@ -29,6 +43,7 @@
     </div>
 </div>
 
+<!-- 부트스트랩 JS 번들 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

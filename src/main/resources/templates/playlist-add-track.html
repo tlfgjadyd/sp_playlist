@@ -1,21 +1,28 @@
 <!DOCTYPE html>
+<!-- NOTE: 이 페이지는 현재 'Add to Playlist' 모달로 대체되어 직접 사용되지 않을 수 있음 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Add Track to Playlist</title>
+    <!-- 외부 CSS 및 CSRF 토큰 메타 태그 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
+<!-- 모든 페이지 상단에 표시될 네비게이션 바 삽입 -->
 <div th:replace="~{global-top :: global-top}"></div>
 
+<!-- 페이지 주요 컨텐츠 시작 -->
 <div class="container mt-5">
+    <!-- 페이지 제목, 추가할 트랙 이름 표시 -->
     <h1>Add "<span th:text="${trackName}">Track Name</span>" to Playlist</h1>
 
+    <!-- 추가할 트랙의 정보를 보여주는 카드 UI -->
     <div class="card mb-4" style="max-width: 540px;">
         <div class="row g-0">
             <div class="col-md-4">
+                <!-- 앨범 아트 이미지 -->
                 <img th:if="${imageUrl != null and imageUrl != ''}"
                      th:src="${imageUrl}"
                      class="img-fluid rounded-start"
@@ -23,6 +30,7 @@
             </div>
             <div class="col-md-8">
                 <div class="card-body">
+                    <!-- 트랙 이름과 아티스트 이름 -->
                     <h5 class="card-title" th:text="${trackName}">Track Name</h5>
                     <p class="card-text" th:text="${artistName}">Artist Name</p>
                 </div>
@@ -30,8 +38,11 @@
         </div>
     </div>
 
+    <!-- th:if="${!playlists.isEmpty()}": 사용자의 플레이리스트가 하나 이상 있을 경우에만 폼을 표시 -->
     <div th:if="${!playlists.isEmpty()}">
+        <!-- 트랙 추가 정보를 서버로 보내는 폼. onsubmit 이벤트로 JS 함수 호출 -->
         <form id="addTrackForm" th:action="@{/playlists/add-track}" method="post" onsubmit="addTrack(event)">
+            <!-- 트랙 정보를 서버로 전송하기 위한 숨겨진 필드들 -->
             <input type="hidden" name="trackId" th:value="${trackId}"/>
             <input type="hidden" name="trackName" th:value="${trackName}"/>
             <input type="hidden" name="artistName" th:value="${artistName}"/>
@@ -39,7 +50,9 @@
 
             <div class="mb-3">
                 <label for="playlistSelect" class="form-label">Select Playlist:</label>
+                <!-- 사용자의 플레이리스트 목록을 보여주는 드롭다운 메뉴 -->
                 <select id="playlistSelect" name="playlistId" class="form-select" required>
+                    <!-- th:each: 'playlists' 리스트를 순회하며 각 플레이리스트를 옵션으로 생성 -->
                     <option th:each="playlist : ${playlists}" th:value="${playlist.id}" th:text="${playlist.name}"></option>
                 </select>
             </div>
@@ -49,32 +62,34 @@
         </form>
     </div>
 
+    <!-- th:if="${playlists.isEmpty()}": 사용자의 플레이리스트가 없을 경우 경고 메시지 표시 -->
     <div th:if="${playlists.isEmpty()}" class="alert alert-warning mt-4" role="alert">
         You don't have any playlists yet. <a href="/playlists/create" class="alert-link">Create one now!</a>
     </div>
 </div>
 
-<!-- Toast UI -->
+<!-- 토스트 UI 및 관련 스크립트 삽입 -->
 <div th:replace="~{global-top :: toast-container}"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Toast script -->
 <div th:replace="~{global-top :: toast-script}"></div>
 
+<!-- 폼 제출을 비동기적으로 처리하는 스크립트 -->
 <script>
 /*<![CDATA[*/
+    // 폼 제출 이벤트를 가로채는 함수
     function addTrack(event) {
-        event.preventDefault(); // Prevent default form submission
+        event.preventDefault(); // 기본 폼 제출 동작(페이지 새로고침) 방지
 
         const form = document.getElementById('addTrackForm');
         const formData = new FormData(form);
 
+        // CSRF 토큰을 헤더에 추가
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-
         const headers = new Headers();
         headers.append(csrfHeader, csrfToken);
 
+        // Fetch API를 사용하여 폼 데이터를 서버에 POST 요청으로 전송
         fetch(form.action, {
             method: 'POST',
             headers: headers,
@@ -82,12 +97,13 @@
         })
         .then(response => response.json())
         .then(data => {
+            // 서버 응답에 따라 성공/실패 토스트 메시지 표시
             if (data.success) {
                 const message = `Successfully added to '${data.playlistName}'.`;
                 const playlistUrl = `/playlists/${data.playlistId}`;
-                showToast(message, playlistUrl);
+                showToast(message, playlistUrl); // 성공 토스트
             } else {
-                showToast(data.message || 'An error occurred.');
+                showToast(data.message || 'An error occurred.'); // 실패 토스트
             }
         })
         .catch(error => {

@@ -1,26 +1,39 @@
 <!DOCTYPE html>
+<!-- Thymeleaf 네임스페이스 선언 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{global-top :: common-head}"></head>
+<head>
+    <!-- 공통 헤더 정보 (CSS, 메타 태그 등) 삽입 -->
+    <head th:replace="~{global-top :: common-head}"></head>
+</head>
 <body>
+<!-- 모든 페이지 상단에 표시될 네비게이션 바 삽입 -->
 <div th:replace="~{global-top :: global-top}"></div>
 
+<!-- 페이지 주요 컨텐츠 시작 -->
 <div class="container mt-5">
     <h1>Create New Playlist</h1>
+
+    <!-- 새 플레이리스트 생성 정보를 서버로 전송하는 폼 -->
+    <!-- th:action="@{/playlists/create}": 폼 제출 시 /playlists/create URL로 POST 요청 전송 -->
     <form th:action="@{/playlists/create}" method="post">
+        <!-- 플레이리스트 이름 입력 필드 -->
         <div class="mb-3">
             <label for="name" class="form-label">Playlist Name:</label>
             <input type="text" id="name" name="name" class="form-control" required/>
         </div>
+        <!-- 플레이리스트 설명 입력 필드 -->
         <div class="mb-3">
             <label for="description" class="form-label">Description:</label>
             <textarea id="description" name="description" class="form-control" rows="4"></textarea>
         </div>
+        <!-- 폼 제출 버튼 -->
         <div>
             <button type="submit" class="btn btn-primary">Create</button>
         </div>
     </form>
 </div>
 
+<!-- 부트스트랩 JS 번들 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

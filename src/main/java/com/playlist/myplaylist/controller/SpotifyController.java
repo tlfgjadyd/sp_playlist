@@ -18,6 +18,10 @@ import com.playlist.myplaylist.model.TrackViewModel;
 import org.springframework.web.util.UriComponentsBuilder;
 import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 
+/**
+ * Spotify 기능과 관련된 HTTP 요청을 처리
+ * `SpotifyService`를 통해 Spotify API에서 데이터를 가져와 다양한 HTML 템플릿에 표시할 수 있도록 준비
+ */
 @Controller
 public class SpotifyController {
 
@@ -27,11 +31,12 @@ public class SpotifyController {
         this.spotifyService = spotifyService;
     }
 
+    // 로그인
     @GetMapping("/login")
     public String login() {
         return "login";
     }
-
+    // 새로 발매된 앨범 조회
     @GetMapping("/new-releases")
     public String getNewReleases(Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
         User user = customOAuth2User.getUser();
@@ -40,6 +45,7 @@ public class SpotifyController {
         return "new-releases";
     }
 
+    // 계정 사용자가 Spotify에서 최근에 많이 청취한 곡 목록
     @GetMapping("/top-tracks")
     public String getTopTracks(Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
         User user = customOAuth2User.getUser();
@@ -47,7 +53,7 @@ public class SpotifyController {
         model.addAttribute("trackPaging", trackPaging);
         return "top-tracks";
     }
-
+    // 검색
     @GetMapping("/search")
     public String search(@RequestParam(name = "q", required = false) String query, Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
         if (query != null && !query.isBlank()) {
@@ -59,7 +65,7 @@ public class SpotifyController {
         model.addAttribute("query", query);
         return "search-results";
     }
-
+    // 검색 쿼리 요청
     @GetMapping("/api/search")
     @ResponseBody
     public Paging<Track> searchApi(@RequestParam(name = "q") String query,
@@ -69,6 +75,7 @@ public class SpotifyController {
         return spotifyService.searchTracks(user, query, offset);
     }
 
+    // new-release 무한 스크롤 위한 api요청
     @GetMapping("/api/new-releases")
     @ResponseBody // JSON으로 반환
     public ResponseEntity<Paging<AlbumSimplified>> getNewReleasesApi(
@@ -84,7 +91,7 @@ public class SpotifyController {
 
 
 
-
+    // 새로 발매된 앨범의 세부정보를 얻음
     @GetMapping("/album/{id}")
     public String showAlbumDetails(@PathVariable String id, Model model, @AuthenticationPrincipal CustomOAuth2UserService.CustomOAuth2User customOAuth2User) {
         User user = customOAuth2User.getUser();

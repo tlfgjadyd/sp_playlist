@@ -1,11 +1,18 @@
 <!DOCTYPE html>
+<!-- Thymeleaf 네임스페이스 선언 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{global-top :: common-head}"></head>
+<head>
+    <!-- 공통 헤더 정보 (CSS, 메타 태그 등) 삽입 -->
+    <head th:replace="~{global-top :: common-head}"></head>
+</head>
 <body>
+<!-- 모든 페이지 상단에 표시될 네비게이션 바 삽입 -->
 <div th:replace="~{global-top :: global-top}"></div>
 
+<!-- 페이지 주요 컨텐츠 시작 -->
 <div class="container mt-5">
     <h1>Search Tracks</h1>
+    <!-- 트랙 검색을 위한 폼. GET 요청으로 /search 에 쿼리 전송 -->
     <form th:action="@{/search}" method="get" class="mb-4">
         <div class="input-group">
             <input type="text" name="q" class="form-control" placeholder="Search for a track..." th:value="${query}">
@@ -13,17 +20,19 @@
         </div>
     </form>
 
-    <!-- Initial state before a search is performed -->
+    <!-- th:if: 쿼리가 없거나 비어있을 경우 (검색 전 초기 상태) -->
     <div th:if="${query == null or query.isBlank()}">
         <p class="text-muted">Please enter a search term to find tracks.</p>
     </div>
 
-    <!-- Search results -->
+    <!-- th:if: 쿼리가 존재할 경우 검색 결과 섹션 표시 -->
     <div th:if="${query != null and !query.isBlank()}">
         <h2 th:if="${trackPaging != null and trackPaging.total > 0}">Search Results for "<span th:text="${query}"></span>"</h2>
 
+        <!-- 검색 결과 트랙 목록을 담는 컨테이너 -->
         <div id="search-results-container" class="list-group">
-            <!-- Initial tracks are rendered here by Thymeleaf -->
+            <!-- 서버에서 렌더링된 첫 페이지 트랙 목록 -->
+            <!-- th:each: 'trackPaging.items' 리스트를 순회하며 각 트랙을 렌더링 -->
             <div th:each="track : ${trackPaging?.items}" class="list-group-item list-group-item-action">
                 <div class="d-flex align-items-center">
                     <img th:if="${track.album.images.length > 0}" th:src="${track.album.images[0].url}" alt="Album Art" style="width: 80px; height: 80px; margin-right: 15px;">
@@ -31,6 +40,7 @@
                         <h5 class="mb-1" th:text="${track.name}">Track Name</h5>
                         <p class="mb-1" th:text="${#strings.arrayJoin(track.artists.![name], ', ')}">Artist Names</p>
                     </div>
+                    <!-- '플레이리스트에 추가' 모달을 여는 버튼 -->
                     <button class="btn btn-success btn-sm"
                             th:attr="data-track-id=${track.id},
                                      data-track-name=${track.name},
@@ -43,25 +53,28 @@
             </div>
         </div>
 
-        <!-- Loading Indicator -->
+        <!-- 추가 결과 로딩 시 표시될 인디케이터 -->
         <div id="loading" style="display: none; text-align: center; padding: 20px;">
             <p>Loading more results...</p>
         </div>
 
+        <!-- 검색 결과가 없을 경우 메시지 표시 -->
         <div th:if="${trackPaging == null or trackPaging.total == 0}" class="alert alert-info mt-3">
             <p>No tracks found for "<span th:text="${query}"></span>".</p>
         </div>
     </div>
 </div>
 
-<!-- Add to Playlist Modal -->
+<!-- '플레이리스트에 추가' 모달 (다른 페이지에서도 재사용되는 공통 UI) -->
 <div class="modal fade" id="addToPlaylistModal" tabindex="-1" aria-labelledby="addToPlaylistModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
+            <!-- 모달 헤더 -->
             <div class="modal-header">
                 <h5 class="modal-title" id="addToPlaylistModalLabel">Add to Playlist</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <!-- 모달 바디 (트랙 정보 및 플레이리스트 선택 폼) -->
             <div class="modal-body">
                 <p>Add "<strong id="modalTrackName"></strong>" to which playlist?</p>
                 <form id="modalAddTrackForm">
@@ -72,11 +85,12 @@
                     <div class="mb-3">
                         <label for="modalPlaylistSelect" class="form-label">Select Playlist:</label>
                         <select id="modalPlaylistSelect" name="playlistId" class="form-select" required>
-                            <!-- Options will be populated by JavaScript -->
+                            <!-- JS로 동적 생성 -->
                         </select>
                     </div>
                 </form>
             </div>
+            <!-- 모달 푸터 (닫기, 저장 버튼) -->
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="handleModalFormSubmit()">Save changes</button>
@@ -86,19 +100,17 @@
 </div>
 
 
-<!-- Toast UI -->
+<!-- 토스트 UI 및 관련 스크립트 삽입 -->
 <div th:replace="~{global-top :: toast-container}"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Toast script -->
 <div th:replace="~{global-top :: toast-script}"></div>
 
+<!-- 페이지 고유 로직: 모달 핸들링 및 무한 스크롤 -->
 <script th:inline="javascript">
 /*<![CDATA[*/
+    // '플레이리스트에 추가' 모달 관련 로직 (album-detail.html과 동일)
     const addToPlaylistModal = new bootstrap.Modal(document.getElementById('addToPlaylistModal'));
-
     function openAddToPlaylistModal(button) {
-        // Store track data in the modal form
         document.getElementById('modalTrackName').textContent = button.dataset.trackName;
         document.getElementById('modalTrackId').value = button.dataset.trackId;
         document.getElementById('modalTrackNameInput').value = button.dataset.trackName;
@@ -106,13 +118,12 @@
         document.getElementById('modalImageUrl').value = button.dataset.imageUrl;
 
         const playlistSelect = document.getElementById('modalPlaylistSelect');
-        playlistSelect.innerHTML = '<option>Loading playlists...</option>'; // Clear previous options
+        playlistSelect.innerHTML = '<option>Loading playlists...</option>';
 
-        // Fetch user's playlists
         fetch('/playlists/api/my')
             .then(response => response.json())
             .then(playlists => {
-                playlistSelect.innerHTML = ''; // Clear loading message
+                playlistSelect.innerHTML = '';
                 if (playlists.length > 0) {
                     playlists.forEach(playlist => {
                         const option = document.createElement('option');
@@ -128,11 +139,9 @@
 
         addToPlaylistModal.show();
     }
-
     function handleModalFormSubmit() {
         const form = document.getElementById('modalAddTrackForm');
         const formData = new FormData(form);
-
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
         const headers = new Headers();
@@ -145,7 +154,6 @@
         })
         .then(response => {
             if (!response.ok) {
-                // For non-JSON responses or errors like 403
                 showToast(`Error: ${response.statusText}`);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -167,7 +175,7 @@
         });
     }
 
-    // --- Infinite Scroll Logic ---
+    // --- 무한 스크롤 로직 ---
     const trackPaging = /*[[${trackPaging}]]*/ null;
     const query = /*[[${query}]]*/ null;
 
@@ -181,14 +189,15 @@
 
         window.onscroll = () => {
             if (isLoading || nextOffset >= total) return;
-
             if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
                 isLoading = true;
                 loadingIndicator.style.display = 'block';
 
+                // 다음 페이지의 검색 결과를 API로 요청
                 fetch(`/api/search?q=${encodeURIComponent(query)}&offset=${nextOffset}`)
                     .then(response => response.json())
                     .then(data => {
+                        // 받아온 각 트랙에 대해 DOM 요소를 생성하여 추가
                         data.items.forEach(track => {
                             const trackElement = createTrackElement(track);
                             resultsContainer.appendChild(trackElement);
@@ -206,6 +215,7 @@
             }
         };
 
+        // 트랙 데이터를 받아 동적으로 HTML 요소를 생성하는 함수
         function createTrackElement(track) {
             const item = document.createElement('div');
             item.className = 'list-group-item list-group-item-action';
@@ -213,6 +223,7 @@
             const imageUrl = track.album.images.length > 0 ? track.album.images[0].url : '';
             const artistNames = track.artists.map(artist => artist.name).join(', ');
 
+            // 'Add to Playlist' 버튼 동적 생성
             const button = document.createElement('button');
             button.className = 'btn btn-success btn-sm';
             button.textContent = 'Add to Playlist';
@@ -231,7 +242,6 @@
                     </div>
                 </div>
             `;
-            // Append the button to the inner div
             item.querySelector('.d-flex').appendChild(button);
             return item;
         }

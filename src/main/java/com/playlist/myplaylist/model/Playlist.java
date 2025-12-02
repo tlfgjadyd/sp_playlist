@@ -5,10 +5,13 @@ import lombok.Setter;
 
 import java.sql.Timestamp;
 
+/**
+ * 플레이리스트 정보를 나타내기위한 모델
+ */
 @Setter
 @Getter
 public class Playlist {
-    // Getters and Setters
+
     private int id;
     private int userId;
     private String name;

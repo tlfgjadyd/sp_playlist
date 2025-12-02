@@ -5,10 +5,12 @@ import lombok.Setter;
 
 import java.sql.Timestamp;
 
+/**
+ * 음악(track)의 정보를 나타내기 위한 모델
+ */
 @Setter
 @Getter
 public class PlaylistTrack {
-    // Getters and Setters
     private int id;
     private int playlistId;
     private String trackId;

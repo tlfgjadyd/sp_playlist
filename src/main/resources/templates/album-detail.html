@@ -1,24 +1,39 @@
 <!DOCTYPE html>
+<!-- Thymeleaf를 사용하여 서버 사이드 렌더링을 위한 네임스페이스 선언 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{global-top :: common-head}"></head>
+<head>
+    <!-- 공통 헤더 정보 (CSS, 메타 태그 등) 삽입 -->
+    <head th:replace="~{global-top :: common-head}"></head>
+</head>
 <body>
+<!-- 모든 페이지 상단에 표시될 네비게이션 바 삽입 -->
 <div th:replace="~{global-top :: global-top}"></div>
 
+<!-- 페이지 주요 컨텐츠 시작 -->
 <div class="container mt-5">
+    <!-- 서버에서 전달된 'album' 모델 객체가 있을 경우에만 이 블록을 렌더링 -->
     <div th:if="${album != null}">
         <div class="row">
+            <!-- 앨범 커버 이미지 표시 영역 -->
             <div class="col-md-4">
+                <!-- 앨범 이미지가 존재할 경우 첫 번째 이미지를 사용 -->
                 <img th:if="${album.images != null && album.images.length > 0}"
                      th:src="${album.images[0].url}"
                      class="img-fluid rounded"
                      alt="Album Cover">
             </div>
+            <!-- 앨범 정보 텍스트 표시 영역 -->
             <div class="col-md-8">
+                <!-- 앨범 이름 -->
                 <h1 th:text="${album.name}">Album Name</h1>
+                <!-- 아티스트 이름 목록 (쉼표로 구분) -->
                 <p class="lead" th:text="${#strings.arrayJoin(album.artists.![name], ', ')}">Artists</p>
+                <!-- 앨범 메타데이터 -->
                 <p>
+                    <!-- 출시일 -->
                     <small class="text-muted" th:text="'Release Date: ' + ${album.releaseDate}"></small>
                     <br>
+                    <!-- 총 트랙 수 -->
                     <small class="text-muted" th:text="${album.tracks.total} + ' tracks'"></small>
                 </p>
             </div>
@@ -26,6 +41,7 @@
 
         <hr class="my-4">
 
+        <!-- 트랙 목록 섹션 -->
         <h2>Tracks</h2>
         <table class="table table-hover">
             <thead>
@@ -34,16 +50,23 @@
                 <th scope="col">Title</th>
                 <th scope="col">Artists</th>
                 <th scope="col">Duration</th>
-                <th scope="col"></th>
+                <th scope="col"></th> <!-- 'Add to Playlist' 버튼을 위한 빈 헤더 -->
             </tr>
             </thead>
             <tbody>
+            <!-- 서버에서 전달된 'tracks' 리스트를 순회하며 각 트랙을 행으로 렌더링 -->
             <tr th:each="track : ${tracks}">
+                <!-- 트랙 번호 -->
                 <th scope="row" th:text="${track.trackNumber}"></th>
+                <!-- 트랙 이름 -->
                 <td th:text="${track.name}">Track Name</td>
+                <!-- 아티스트 이름 -->
                 <td th:text="${track.artists}">Artist Name</td>
+                <!-- 트랙 길이 -->
                 <td th:text="${track.duration}">3:45</td>
                 <td>
+                    <!-- 플레이리스트에 트랙을 추가하는 모달을 여는 버튼 -->
+                    <!-- 버튼 클릭 시 JS 함수에서 사용할 데이터를 data-* 속성에 저장 -->
                     <button class="btn btn-success btn-sm float-end"
                             th:attr="data-track-id=${track.id},
                                      data-track-name=${track.name},
@@ -58,12 +81,13 @@
         </table>
     </div>
 
+    <!-- 'album' 모델 객체가 없을 경우 경고 메시지 표시 -->
     <div th:if="${album == null}" class="alert alert-warning" role="alert">
         Album details could not be loaded.
     </div>
 </div>
 
-<!-- Add to Playlist Modal -->
+<!-- '플레이리스트에 추가' 모달 창 -->
 <div class="modal fade" id="addToPlaylistModal" tabindex="-1" aria-labelledby="addToPlaylistModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -72,14 +96,18 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <!-- 어떤 트랙을 추가할지 표시 -->
                 <p>Add "<strong id="modalTrackName"></strong>" to which playlist?</p>
+                <!-- 트랙 추가 정보를 서버로 전송하기 위한 폼 -->
                 <form id="modalAddTrackForm">
+                    <!-- 숨겨진 필드로 트랙 ID, 이름, 아티스트, 이미지 URL 전송 -->
                     <input type="hidden" id="modalTrackId" name="trackId">
                     <input type="hidden" id="modalTrackNameInput" name="trackName">
                     <input type="hidden" id="modalArtistName" name="artistName">
                     <input type="hidden" id="modalImageUrl" name="imageUrl">
                     <div class="mb-3">
                         <label for="modalPlaylistSelect" class="form-label">Select Playlist:</label>
+                        <!-- 사용자의 플레이리스트 목록이 여기에 동적으로 채워짐 -->
                         <select id="modalPlaylistSelect" name="playlistId" class="form-select" required>
                             <!-- Options will be populated by JavaScript -->
                         </select>
@@ -94,19 +122,23 @@
     </div>
 </div>
 
-<!-- Toast UI -->
+<!-- 토스트 메시지 UI 컨테이너 삽입 -->
 <div th:replace="~{global-top :: toast-container}"></div>
 
+<!-- 부트스트랩 JS 번들 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Toast script -->
+<!-- 토스트 메시지 관련 스크립트 삽입 -->
 <div th:replace="~{global-top :: toast-script}"></div>
 
+<!-- 페이지 고유의 자바스크립트 로직 -->
 <script th:inline="javascript">
     /*<![CDATA[*/
+    // 부트스트랩 모달 인스턴스 생성
     const addToPlaylistModal = new bootstrap.Modal(document.getElementById('addToPlaylistModal'));
 
+    // 'Add to Playlist' 버튼 클릭 시 실행되는 함수
     function openAddToPlaylistModal(button) {
-        // Store track data in the modal form
+        // 버튼의 data-* 속성에서 트랙 정보를 읽어 모달 폼에 설정
         document.getElementById('modalTrackName').textContent = button.dataset.trackName;
         document.getElementById('modalTrackId').value = button.dataset.trackId;
         document.getElementById('modalTrackNameInput').value = button.dataset.trackName;
@@ -114,14 +146,15 @@
         document.getElementById('modalImageUrl').value = button.dataset.imageUrl;
 
         const playlistSelect = document.getElementById('modalPlaylistSelect');
-        playlistSelect.innerHTML = '<option>Loading playlists...</option>'; // Clear previous options
+        playlistSelect.innerHTML = '<option>Loading playlists...</option>'; // 기존 옵션 초기화
 
-        // Fetch user's playlists
+        // 사용자의 플레이리스트 목록을 서버에서 비동기적으로 가져오기
         fetch('/playlists/api/my')
             .then(response => response.json())
             .then(playlists => {
-                playlistSelect.innerHTML = ''; // Clear loading message
+                playlistSelect.innerHTML = ''; // '로딩중' 메시지 제거
                 if (playlists.length > 0) {
+                    // 가져온 플레이리스트로 드롭다운 메뉴 채우기
                     playlists.forEach(playlist => {
                         const option = document.createElement('option');
                         option.value = playlist.id;
@@ -134,18 +167,22 @@
                 }
             });
 
+        // 모달 창 표시
         addToPlaylistModal.show();
     }
 
+    // 모달에서 'Save changes' 버튼 클릭 시 실행되는 함수
     function handleModalFormSubmit() {
         const form = document.getElementById('modalAddTrackForm');
         const formData = new FormData(form);
 
+        // CSRF 토큰을 헤더에 추가하여 보안 요청
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
         const headers = new Headers();
         headers.append(csrfHeader, csrfToken);
 
+        // 서버에 트랙 추가 요청 (POST)
         fetch('/playlists/add-track', {
             method: 'POST',
             headers: headers,
@@ -153,13 +190,14 @@
         })
         .then(response => {
             if (!response.ok) {
-                // For non-JSON responses or errors like 403
+                // HTTP 에러 처리
                 showToast(`Error: ${response.statusText}`);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
+            // 서버 응답에 따라 성공 또는 실패 토스트 메시지 표시
             if (data.success) {
                 const message = `Successfully added to '${data.playlistName}'.`;
                 const playlistUrl = `/playlists/${data.playlistId}`;
@@ -167,7 +205,7 @@
             } else {
                 showToast(data.message || 'An error occurred.');
             }
-            addToPlaylistModal.hide();
+            addToPlaylistModal.hide(); // 모달 닫기
         })
         .catch(error => {
             console.error('Error:', error);
