@@ -1,18 +1,34 @@
 <!DOCTYPE html>
 <!-- Thymeleaf 및 Spring Security Extras 네임스페이스 선언 -->
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" data-bs-theme="light">
 
 <!-- th:fragment="common-head": 다른 페이지에서 재사용할 수 있는 공통 헤더 조각 -->
 <head th:fragment="common-head">
     <meta charset="UTF-8">
     <title>My Playlist</title>
+
+    <!-- 테마 설정 스크립트 (FOUC 방지를 위해 CSS 로드 전에 위치) -->
+    <script th:inline="javascript">
+        (function() {
+            const getStoredTheme = () => localStorage.getItem('theme');
+            const getPreferredTheme = () => {
+                const storedTheme = getStoredTheme();
+                if (storedTheme) {
+                    return storedTheme;
+                }
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            };
+            const theme = getPreferredTheme();
+            document.documentElement.setAttribute('data-bs-theme', theme);
+        })();
+    </script>
+
     <!-- 외부 CSS 라이브러리 (부트스트랩, 부트스트랩 아이콘) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- 커스텀 CSS 파일 -->
     <link rel="stylesheet" th:href="@{/css/custom.css}">
     <!-- CSRF(Cross-Site Request Forgery) 공격 방지를 위한 토큰 -->
-    <!-- sec:authorize="isAuthenticated()": 인증된 사용자에게만 이 메타 태그를 렌더링 -->
     <meta name="_csrf" th:content="${_csrf.token}" sec:authorize="isAuthenticated()"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}" sec:authorize="isAuthenticated()"/>
 </head>
@@ -32,29 +48,52 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                <!-- sec:authorize="isAuthenticated()": 인증된 사용자에게만 'My Playlists' 메뉴를 표시 -->
                 <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" href="/playlists/my">My Playlists</a></li>
                 <li class="nav-item"><a class="nav-link" href="/search">Search</a></li>
                 <li class="nav-item"><a class="nav-link" href="/new-releases">New Releases</a></li>
                 <li class="nav-item"><a class="nav-link" href="/top-tracks">Top Tracks</a></li>
             </ul>
-            <div class="d-flex">
-                <!-- sec:authorize="isAuthenticated()": 인증된 사용자에게만 사용자 드롭다운 메뉴를 표시 -->
+            <div class="d-flex align-items-center">
+                <!-- 테마 선택 드롭다운 -->
+                <div class="nav-item dropdown me-2">
+                    <button class="btn btn-dark nav-link dropdown-toggle" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi" id="theme-icon-active"></i>
+                        <span class="visually-hidden">Toggle theme</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
+                        <li>
+                            <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light">
+                                <i class="bi bi-sun-fill me-2"></i> Light
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark">
+                                <i class="bi bi-moon-stars-fill me-2"></i> Dark
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="auto">
+                                <i class="bi bi-circle-half me-2"></i> Auto
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 사용자 메뉴 (인증 시) -->
                 <div sec:authorize="isAuthenticated()" class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <!-- sec:authentication="name": 현재 인증된 사용자의 이름을 표시 -->
                         <span sec:authentication="name"></span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li>
-                            <!-- 로그아웃을 처리하는 폼 -->
                             <form th:action="@{/logout}" method="post" style="display:inline;">
                                 <button type="submit" class="dropdown-item">Logout</button>
                             </form>
                         </li>
                     </ul>
                 </div>
-                <!-- sec:authorize="isAnonymous()": 인증되지 않은(익명) 사용자에게만 로그인 버튼을 표시 -->
+
+                <!-- 로그인 버튼 (비인증 시) -->
                 <a sec:authorize="isAnonymous()" href="/oauth2/authorization/spotify" class="btn btn-primary" th:style="'background-color: #FFFFFF; border-color: #FFFFFF; color : #000000'">Login</a>
             </div>
         </div>
@@ -68,30 +107,87 @@
             <strong class="me-auto">Notification</strong>
             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
-        <div class="toast-body">
-            <!-- 자바스크립트에 의해 메시지가 여기에 주입됨 -->
-        </div>
+        <div class="toast-body"></div>
     </div>
 </div>
 
 <!-- th:fragment="toast-script": 토스트를 제어하는 자바스크립트 조각 -->
 <script th:fragment="toast-script">
 /*<![CDATA[*/
-    // 토스트 DOM 요소를 가져와 부트스트랩 인스턴스 생성
     const toastEl = document.getElementById('liveToast');
     const toast = new bootstrap.Toast(toastEl);
-
-    // 토스트 메시지를 표시하는 함수
     function showToast(message, playlistUrl) {
         const toastBody = toastEl.querySelector('.toast-body');
         let fullMessage = message;
-        // 만약 플레이리스트 URL이 제공되면, 메시지에 링크를 추가
         if (playlistUrl) {
             fullMessage += ` <a href="${playlistUrl}" class="alert-link">View Playlist</a>`;
         }
         toastBody.innerHTML = fullMessage;
-        toast.show(); // 토스트 표시
+        toast.show();
     }
+/*]]>*/
+</script>
+
+<!-- th:fragment="theme-script": 테마 전환 UI를 위한 스크립트 -->
+<script th:fragment="theme-script" th:inline="javascript">
+/*<![CDATA[*/
+    (function () {
+        'use strict'
+
+        const getStoredTheme = () => localStorage.getItem('theme');
+        const setStoredTheme = theme => localStorage.setItem('theme', theme);
+
+        const getPreferredTheme = () => {
+            const storedTheme = getStoredTheme();
+            if (storedTheme) {
+                return storedTheme;
+            }
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        };
+
+        const setTheme = theme => {
+            if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', theme);
+            }
+        };
+
+        setTheme(getPreferredTheme());
+
+        const showActiveTheme = (theme) => {
+            const themeIcon = document.querySelector('#theme-icon-active');
+            const themeSwitcher = document.querySelector('#themeDropdown');
+
+            if (!themeIcon || !themeSwitcher) {
+                return;
+            }
+
+            const iconClass = theme === 'auto' ? 'bi-circle-half' : (theme === 'dark' ? 'bi-moon-stars-fill' : 'bi-sun-fill');
+            themeIcon.className = 'bi ' + iconClass;
+        };
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            const storedTheme = getStoredTheme();
+            if (storedTheme !== 'light' && storedTheme !== 'dark') {
+                setTheme(getPreferredTheme());
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            showActiveTheme(getPreferredTheme());
+
+            document.querySelectorAll('[data-bs-theme-value]')
+                .forEach(toggle => {
+                    toggle.addEventListener('click', () => {
+                        const theme = toggle.getAttribute('data-bs-theme-value');
+                        setStoredTheme(theme);
+                        setTheme(theme);
+                        showActiveTheme(theme, true);
+                    });
+                });
+        });
+    })();
 /*]]>*/
 </script>
 

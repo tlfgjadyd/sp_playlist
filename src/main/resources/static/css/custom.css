@@ -1,15 +1,6 @@
-body {
-    background-color: #f4f4f4;
-    color: #333;
-}
-
+/* 기본 스타일 */
 .card-album, .list-group-item {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.card-album:hover, .list-group-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .btn-primary {
@@ -22,7 +13,26 @@ body {
     border-color: #1ED760;
 }
 
-.navbar-dark .navbar-brand {
+/* 라이트 모드 스타일 */
+[data-bs-theme="light"] .card-album:hover,
+[data-bs-theme="light"] .list-group-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="light"] .navbar-dark .navbar-brand {
     font-weight: bold;
     color: #1DB954; /* Spotify Green */
+}
+
+/* 다크 모드 스타일 */
+[data-bs-theme="dark"] .card-album:hover,
+[data-bs-theme="dark"] .list-group-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); /* 더 어두운 그림자 */
+}
+
+[data-bs-theme="dark"] .navbar-dark .navbar-brand {
+    font-weight: bold;
+    color: #1ED760; /* 더 밝은 Spotify Green */
 }

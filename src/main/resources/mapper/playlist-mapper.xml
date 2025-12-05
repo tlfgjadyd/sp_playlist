@@ -30,6 +30,13 @@
         WHERE id = #{id}
     </select>
 
+    <update id="updatePlaylist" parameterType="com.playlist.myplaylist.model.Playlist">
+        UPDATE playlists
+        SET name = #{name},
+            description = #{description}
+        WHERE id = #{id}
+    </update>
+
     <delete id="deletePlaylistById">
         DELETE FROM playlists WHERE id = #{id}
     </delete>

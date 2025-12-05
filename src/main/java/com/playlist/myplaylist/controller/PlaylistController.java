@@ -143,6 +143,23 @@ public class PlaylistController {
         return "redirect:/playlists/" + playlistId;
     }
 
+    // 플레이리스트 수정을 위한 폼을 표시, 기존 플레이리스트 데이터를 미리 채움
+    @GetMapping("/{playlistId}/edit")
+    public String showEditPlaylistForm(@PathVariable int playlistId, Model model) {
+        Playlist playlist = playlistMapper.findById(playlistId);
+        model.addAttribute("playlist", playlist);
+        return "playlist-edit";
+    }
+
+    // 플레이리스트 수정을 처리
+    @PostMapping("/{playlistId}/edit")
+    public String updatePlaylist(@PathVariable int playlistId,
+                                 @ModelAttribute Playlist playlist) {
+        playlist.setId(playlistId); // URL에서 받은 ID를 playlist 객체에 설정
+        playlistMapper.updatePlaylist(playlist);
+        return "redirect:/playlists/my";
+    }
+
     // 전체 플레이리스트와 연결된 모든 트랙을 삭제(플리 안에 음악 있어도 음악과 함께 삭제)
     @PostMapping("/{playlistId}/delete")
     public String deletePlaylist(@PathVariable int playlistId) {

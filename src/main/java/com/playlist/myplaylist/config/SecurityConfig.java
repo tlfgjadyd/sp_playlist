@@ -36,8 +36,8 @@ public class SecurityConfig {
         http
                 // 1. HTTP 요청에 대한 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        // 루트 페이지, 로그인, 에러 페이지, 정적 리소스(webjars)는 인증 없이 접근 허용
-                        .requestMatchers("/", "/login", "/error", "/webjars/**").permitAll()
+                        // 루트 페이지, 로그인, 에러 페이지, 정적 리소스(webjars, css, js, images)는 인증 없이 접근 허용
+                        .requestMatchers("/", "/login", "/error", "/webjars/**", "/css/**", "/js/**", "/images/**").permitAll()
                         // 그 외 모든 요청은 인증(로그인)이 필요함
                         .anyRequest().authenticated()
                 )
