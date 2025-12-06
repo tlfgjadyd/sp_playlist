@@ -36,7 +36,7 @@
 <body>
 
 <!-- th:fragment="global-top": 다른 페이지에서 재사용할 수 있는 상단 네비게이션 바 조각 -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark" th:fragment="global-top">
+<nav class="navbar navbar-expand-lg" th:fragment="global-top">
     <div class="container-xxl bd-gutter flex-wrap flex-lg-nowrap">
         <!-- 메인 페이지로 이동하는 브랜드 로고 -->
         <a class="navbar-brand" href="/">MyPlaylist</a>
@@ -56,7 +56,7 @@
             <div class="d-flex align-items-center">
                 <!-- 테마 선택 드롭다운 -->
                 <div class="nav-item dropdown me-2">
-                    <button class="btn btn-dark nav-link dropdown-toggle" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-secondary nav-link dropdown-toggle" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi" id="theme-icon-active"></i>
                         <span class="visually-hidden">Toggle theme</span>
                     </button>

@@ -31,7 +31,7 @@
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <!-- 플레이리스트 상세 페이지로 이동하는 링크 -->
-                            <a th:href="@{/playlists/{id}(id=${playlist.id})}" class="text-decoration-none text-dark">
+                            <a th:href="@{/playlists/{id}(id=${playlist.id})}" class="text-decoration-none">
                                 <h5 class="card-title" th:text="${playlist.name}">Playlist Name</h5>
                             </a>
                             <!-- 플레이리스트 수정 페이지로 이동하는 아이콘 -->
