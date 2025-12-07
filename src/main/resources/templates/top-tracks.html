@@ -83,5 +83,90 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <!-- 테마 전환 UI를 위한 스크립트 -->
 <div th:replace="~{global-top :: theme-script}"></div>
+<!-- 토스트 및 모달 핸들링 스크립트 -->
+<div th:replace="~{global-top :: toast-script}"></div>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // 부트스트랩 모달 인스턴스 생성
+    const addToPlaylistModal = new bootstrap.Modal(document.getElementById('addToPlaylistModal'));
+
+    // 'Add to Playlist' 버튼 클릭 시 실행되는 함수
+    function openAddToPlaylistModal(button) {
+        // 버튼의 data-* 속성에서 트랙 정보를 읽어 모달 폼에 설정
+        document.getElementById('modalTrackName').textContent = button.dataset.trackName;
+        document.getElementById('modalTrackId').value = button.dataset.trackId;
+        document.getElementById('modalTrackNameInput').value = button.dataset.trackName;
+        document.getElementById('modalArtistName').value = button.dataset.artistName;
+        document.getElementById('modalImageUrl').value = button.dataset.imageUrl;
+
+        const playlistSelect = document.getElementById('modalPlaylistSelect');
+        playlistSelect.innerHTML = '<option>Loading playlists...</option>'; // 기존 옵션 초기화
+
+        // 사용자의 플레이리스트 목록을 서버에서 비동기적으로 가져오기
+        fetch('/playlists/api/my')
+            .then(response => response.json())
+            .then(playlists => {
+                playlistSelect.innerHTML = ''; // '로딩중' 메시지 제거
+                if (playlists.length > 0) {
+                    // 가져온 플레이리스트로 드롭다운 메뉴 채우기
+                    playlists.forEach(playlist => {
+                        const option = document.createElement('option');
+                        option.value = playlist.id;
+                        option.textContent = playlist.name;
+                        playlistSelect.appendChild(option);
+                    });
+                } else {
+                    playlistSelect.innerHTML = '<option value="">No playlists found</option>';
+                    playlistSelect.disabled = true;
+                }
+            });
+
+        // 모달 창 표시
+        addToPlaylistModal.show();
+    }
+
+    // 모달에서 'Save changes' 버튼 클릭 시 실행되는 함수
+    function handleModalFormSubmit() {
+        const form = document.getElementById('modalAddTrackForm');
+        const formData = new FormData(form);
+
+        // CSRF 토큰을 헤더에 추가하여 보안 요청
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        const headers = new Headers();
+        headers.append(csrfHeader, csrfToken);
+
+        // 서버에 트랙 추가 요청 (POST)
+        fetch('/playlists/add-track', {
+            method: 'POST',
+            headers: headers,
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                // HTTP 에러 처리
+                showToast(`Error: ${response.statusText}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // 서버 응답에 따라 성공 또는 실패 토스트 메시지 표시
+            if (data.success) {
+                const message = `Successfully added to '${data.playlistName}'.`;
+                const playlistUrl = `/playlists/${data.playlistId}`;
+                showToast(message, playlistUrl);
+            } else {
+                showToast(data.message || 'An error occurred.');
+            }
+            addToPlaylistModal.hide(); // 모달 닫기
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            addToPlaylistModal.hide();
+        });
+    }
+    /*]]>*/
+</script>
 </body>
 </html>
